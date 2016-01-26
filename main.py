@@ -5,10 +5,8 @@ Created on Thu Dec 31 12:41:35 2015
 @author: T800GHB
 """
 
-import os
-import numpy as np
-import pylab
 import basic_element.basic_operation as bo
+import basic_function.function_call as fc
 
 """
 This is a basic output
@@ -36,10 +34,23 @@ This function could implement basic loop operation.
 """
 Dictionary
 """
-bo.Basic_dict()
+#bo.Basic_dict()
 
 """
 Set
 """
-bo.Basic_set()
+#bo.Basic_set()
+"""
+Function call
+"""
+#fc.call_basic()
+"""
+Type convertion function
+"""
+#fc.type_convert()
+
+"""
+Function parameter check and multi_return
+"""
+fc.controler()
 
