@@ -40,11 +40,46 @@ def controler():
     y = -4
     str_var = '10'
     summation, product = multi_return(x, y)
-    print('Result of multi_return is : %d, %d', %(summation, product))
+    print('Result of multi_return is : %d, %d' %(summation, product))
     abs_var = abs_param_check(y)
     print('Result of abs is : ', abs_var)
-    abs_var = abs_param_check(str_var)
+    #This kind of usage will cause a type error.
+    #abs_var = abs_param_check(str_var)
     print('Result of abs is : ', abs)
+    #Input null
+    defult_param()  
+    #Input first parameter
+    defult_param(x)
+    #As same before,so the defult parameter  fill the rest of parameter list.
+    defult_param(y)
+    #Input dual parameter
+    defult_param(x,y)
+    
+    list_var = [1,2,'big',True]
+    #Input constant value and variable
+    mutable_arguments_list(1,x)
+    #All varibales
+    mutable_arguments_list(x,y,str_var)
+    #Input list as parameter
+    mutable_arguments_list(*list_var)
+    #If i input only list , without star before list, it will like input only one.
+    mutable_arguments_list(list_var)
+    #Input key word parameter. The number of argument  is mutable
+    keyword_argment_list(city = 'New York', age = 30)
+    keyword_argment_list(city = 'New York', age = 28, job = 'Engineer')
+    
+    dict_var = {'city ':'New York', 'age ':28, 'job' : 'Engineer', 'company' : 'DeepTec'}
+    #Take the dict as input
+    keyword_argment_list(**dict_var)
+    #When we call the named key word argument,  please input the name of argument.
+    named_keyword(city = 'Dalian', age = 40)
+    #But you can ommit the order of argument
+    named_keyword(age = 40, city = 'London')
+    #If function offer some defult value, we can directly miss any one
+    named_keyword(age = 49)
+    
+    
+    
     
 
 def virtual_func():
@@ -71,5 +106,39 @@ def multi_return(x,y):
     summation = x + y
     product = x * y
     return summation, product
+    
+def defult_param(x = 0, y = 1):
+    """This example show how to define function with defult parameter.
+    But, the most important rule, do not use empty list as defult value.
+    """
+    print('Received parameter is : %d, %d.' %(x,y))
+    
+def mutable_arguments_list(*args):
+    """ If the argument's list is mutable, function received tuple acctually.
+    """
+    print('The content in argment list is :')
+    for item in args:
+        print(item)
+        
+def keyword_argment_list(**kw):
+    """This function show how to define a key word parameter list.
+    Acctually, this function received a dict as input.
+    The number of key word parameter is mutable.
+    """
+    print('The key word parameter is :' ,kw)
+    
+def named_keyword(*,city = 'shenyang', age):
+    """If we want to define a named key word parameter, assign a star with 
+    comma before those argument.
+    If we ignore the star and comma before argument , those will be normal argument.
+    """
+    print('The argument is :', city ,'and' , age)
+    
+    
+    
+    
+    
+    
+
     
     
