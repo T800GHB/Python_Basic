@@ -134,6 +134,25 @@ def named_keyword(*,city = 'shenyang', age):
     """
     print('The argument is :', city ,'and' , age)
     
+def recursive_function(x):
+    """This function will show a recursive function.
+    Let's do a summation of  geometric progression.
+    """
+    if x == 1:
+        return x
+    return x * recursive_function(x - 1)
+    
+def recursive_function_iter(x, summation):
+    """This function will show a usage that avoid stack overflow.
+    The key idea is we should not add expression behind 'return'
+    """
+    if x == 1:
+        return summation
+    return recursive_function_iter(x - 1, summation)
+    
+
+        
+    
     
     
     
