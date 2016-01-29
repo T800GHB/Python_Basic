@@ -49,6 +49,26 @@ def iterable_justify():
     #Iterate with value
     for item in dict_val.values():
         print(item)
+    #Iterate with key and value
+    for k,v in dict_val.items():
+        print(k , '=', v)
+        
+def list_inference():
+    num_list = [1,2,3,4,5,6,7,8,9,0]
+    low_list = ['a','b','c']
+    up_list = ['A','B','C']
+    #Make every element in num_list be its square
+    result = [x * x for x in num_list]
+    print(result)
+    #Add condition with list inference
+    result = [x*x for x in num_list if x % 2 == 0]
+    print(result)
+    #Use two list to inference at same time.
+    #Result will be work on every combination.
+    result = [str1 + str2 for str1 in low_list for str2 in up_list]
+    print(result)
+    result = [str1.upper() for str1 in low_list]
+    print(result)
     
     
    
