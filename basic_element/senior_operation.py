@@ -5,6 +5,8 @@ Created on Thu Jan 28 22:40:31 2016
 @author: T800GHB
 This file contain some high-level feature about python
 """
+#Iterable will be used to justify wheather a object is iterable. 
+from collections import  Iterable
 
 def slice_index():
     """This file show how a list can be indexed by slice feature.
@@ -34,6 +36,20 @@ def slice_index():
     #If we ommit both left and right index, this means use what all we have.
     sparse_acquire = num[::3]
     print('Acquire item every three element in full range: ', sparse_acquire)
+    
+def iterable_justify():
+    """This function will show how to justify a object is iterable or not.
+    """
+    dict_val = {'a':1, 'b':2, 'c':3}
+    iter_bool = isinstance(dict_val, Iterable)
+    print('Dict is iterable : ', iter_bool)
+    #Iterate with key
+    for item in dict_val:
+        print(item)
+    #Iterate with value
+    for item in dict_val.values():
+        print(item)
+    
     
    
     
