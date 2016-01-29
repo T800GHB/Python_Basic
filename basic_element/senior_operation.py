@@ -7,6 +7,8 @@ This file contain some high-level feature about python
 """
 #Iterable will be used to justify wheather a object is iterable. 
 from collections import  Iterable
+#Iterator vill be used to justify wheather a object is a iterator
+from collections import  Iterator
 
 def slice_index():
     """This file show how a list can be indexed by slice feature.
@@ -53,7 +55,7 @@ def iterable_justify():
     for k,v in dict_val.items():
         print(k , '=', v)
         
-def list_inference():
+def list_inference():    
     num_list = [1,2,3,4,5,6,7,8,9,0]
     low_list = ['a','b','c']
     up_list = ['A','B','C']
@@ -69,6 +71,61 @@ def list_inference():
     print(result)
     result = [str1.upper() for str1 in low_list]
     print(result)
+    
+def generator():
+    """This function will show how to use generator.
+    Generator is a algorithm
+    """
+    #Create a generator.Pay attention to (), not []
+    #Generator can only be used once.
+    #If you want to reuse , recreate it.
+    g = (x for x in range(20))
+    for x in g:
+        print(x)
+    #Create a generator with a function
+    print('Fibonacci sequence')
+    fibonacci = fib(8)
+    for x in fibonacci:
+        print(x)
+    
+    #If i want to achive the return value, recreate again
+    fibonacci = fib(10)
+    print('Fibonacci sequence 2')
+    while True:
+        try:
+            x = next(fibonacci)
+            print(x)
+        except StopIteration as e:
+            print('Generator return value : ', e.value)
+            break
+    
+        
+        
+        
+def fib(max):
+    """This function is a generator.
+    Pay attention to 'yield' key word.
+    Calculate a fibonacci sequence.
+    """
+    n,a,b = 0,0,1
+    while n < max:
+        yield b
+        a,b = b, b + a
+        n = n + 1
+    return 'done'
+    
+def iterator():
+    bool_var = isinstance((x for x in range(10)), Iterator)
+    print(bool_var)
+    bool_var = isinstance([], Iterator)
+    print(bool_var)
+    bool_var = isinstance({}, Iterator)
+    print(bool_var)
+    #Convert to a iterator
+    bool_var =  isinstance(iter([]), Iterator)
+    print(bool_var)
+    bool_var =  isinstance(iter('abc'), Iterator)
+    print(bool_var)
     
     
    
