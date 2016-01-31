@@ -55,6 +55,20 @@ def filter_usage():
     #The return object is a iterator
     print('The result of filter is :',list(res))
     
+def sorted_usage():
+    """This script will show  how to use high-level property about sorted function.
+    We can input a function to sorted, then the output order will be as our wish.
+    """
+    list_var = [23, 45, -4, -98, -200, 500]
+    res = sorted(list_var)
+    print('The result of orignal sorted is :', res)
+    #Use key function on sort procedure.
+    res = sorted(list_var,key=abs)
+    print('The result of key order is :', res)
+    #Reverse it, Pay attention to reverse is a key argument
+    res = sorted(list_var,key=abs, reverse = True)
+    print('The result of reverse is :', res)    
+    
     
 
     
