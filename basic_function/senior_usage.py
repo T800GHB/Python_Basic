@@ -15,6 +15,9 @@ def square(x):
     
 def combine(x, y):
     return x*10 + y
+    
+def is_odd(x):
+    return x % 2 == 1
 
 def high_order_function():
     """This script will show how to pass a function as a argument into another
@@ -41,6 +44,16 @@ def map_reduce():
     #reduce function will work on two continuous element 
     res = reduce(combine, list_var)
     print('The result of reduce is :', res)
+    
+def filter_usage():
+    """This script will show how to use bulit-in filter function.
+    filter function will receive a function and data as input.
+    The element will be reserved that function work on it return true
+    """
+    list_var = [0,1,2,3,4,5,6,7,8,9]
+    res = filter(is_odd, list_var)
+    #The return object is a iterator
+    print('The result of filter is :',list(res))
     
     
 
