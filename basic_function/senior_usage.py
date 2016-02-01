@@ -18,6 +18,21 @@ def combine(x, y):
     
 def is_odd(x):
     return x % 2 == 1
+    
+def lazy_sum(*args):
+    """This script show how to return a function as output.
+    Pay attention to the time that returned function really run.
+    """
+    def sum_fun():
+        """The inner function could access argument and local variable
+        external function.
+        """
+        summation = 0
+        for item in args:
+            summation += item
+        return summation
+    return sum_fun
+            
 
 def high_order_function():
     """This script will show how to pass a function as a argument into another
@@ -68,6 +83,20 @@ def sorted_usage():
     #Reverse it, Pay attention to reverse is a key argument
     res = sorted(list_var,key=abs, reverse = True)
     print('The result of reverse is :', res)    
+    
+def return_function():
+    """This script will show how to use function as return value.
+    The most important thing is that return will not implement immediately,
+    but when call it.
+    """
+    fp = lazy_sum(1,2,3,4,5,6,7)
+    print('This is a function object', fp)
+    sum_var = fp()
+    print('This is a result of lazy_sum :', sum_var)
+    
+    
+    
+    
     
     
 
