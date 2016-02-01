@@ -32,6 +32,10 @@ def lazy_sum(*args):
             summation += item
         return summation
     return sum_fun
+    
+def return_lambda(x = 0, y = 0):
+    return lambda  x,y :x * x + y*y
+    
             
 
 def high_order_function():
@@ -93,6 +97,26 @@ def return_function():
     print('This is a function object', fp)
     sum_var = fp()
     print('This is a result of lazy_sum :', sum_var)
+    
+def lambda_function():
+    """This script will show how to use lambda function.
+    lambda function is a temporary function object, so we don't need to care
+    name confliction. 
+    """
+    list_var = [1,2,3,4,5,6,7,8,9,0]
+    #Use lambda to define a temporary function and take it as input
+    #Use lambda key word and assign a argument behind it, the express add 
+    #back on colon
+    res = map(lambda x : x*x , list_var)
+    print('The result of mapping a list is :', list(res))
+    #A lambda function could assign to a function object.
+    fp = lambda x : x*x
+    print('The result of lambda function object is:', fp(9))
+    #This kind of usage is so bad, if i do not assign a defult value to 
+    #positional arguments
+    fp = return_lambda()
+    print('The result of returned lambda function object is:', fp(3,7))
+    
     
     
     
