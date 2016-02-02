@@ -118,6 +118,26 @@ def lambda_function():
     print('The result of returned lambda function object is:', fp(3,7))
     
     
+def fun_name(func):
+    """This function define a decorator, it will reinforce other function
+    by use @ ahead on what we want to be better.
+    """
+    def additional(*args, **kw):
+        print('Call %s()'%(func.__name__))
+        return func(*args, **kw)
+    return additional
+
+"""Use decorator
+"""
+@fun_name
+def now():
+    print('2016-2-2')
+    
+def decorator_fun():
+    now()
+    
+    
+    
     
     
     
