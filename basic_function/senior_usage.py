@@ -136,6 +136,24 @@ def now():
 def decorator_fun():
     now()
     
+import functools
+
+
+def partial_func():
+    """This script will show how to define a partial function.
+    Partial function conduct from a function we already have, but we want to
+    fix some argument or input data.
+    """
+    #Int is a function that will convert a string to a number.
+    #At same time we can pass a key word argument 'base' as base of convertion
+    #partial(builtins.object)
+    #partial(func, *args, **keywords) - new function with partial application
+    #of the given arguments and keywords.
+    int2 = functools.partial(int, base = 2)
+    res = int2('10010100')
+    print('The result convert by int2 is :', res)
+    
+    
     
     
     
