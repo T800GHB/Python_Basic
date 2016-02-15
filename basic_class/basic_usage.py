@@ -31,14 +31,17 @@ class student(object):
     
 class science_student(student):
     def __init__(self, name, ID, skill):
-        #self.__name = name
-        #self.__ID = ID
+        #Pay attention to this constructor usage in subclass
+        student.__init__(self, name,ID)
         self.__skill = skill
     
     def get_skill(self):
         return self.__skill
     def set_skill(self, skill):
         self.__skill = skill
+        
+class art_student(student):
+    pass
         
 def try_class():
     stu = student('Jack', 955)
@@ -48,13 +51,17 @@ def try_class():
     print('This student come from: ', stu.city)
     #Initialize new object of science_student
     stu_s = science_student('Tom', 900, 'computer')
-    #print("Science student's name is :", stu_s.get_name())
+    print("Science student's name is :", stu_s.get_name())
     #Show the type of stu_s
     print('The type of stu_s is :', type(stu_s))
     #If this object is a instance of one kind of class
     print('stu_s is a instance of student:', isinstance(stu_s, student))
     #List all method and attribute of this class
-    print('All method and attribute in stu is :', dir(stu_s))		
+    print('All method and attribute in stu is :', dir(stu_s))
+    stu_a = art_student('Mike',990)
+    print('All method and attribute in art student object is :',dir(stu_a))
+    print('All method and attribute in art student class is :',dir(art_student))
+    print(stu_a.get_name())
     
 
     
