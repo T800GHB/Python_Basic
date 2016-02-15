@@ -31,8 +31,8 @@ class student(object):
     
 class science_student(student):
     def __init__(self, name, ID, skill):
-        self.__name = name
-        self.__ID = ID
+        #self.__name = name
+        #self.__ID = ID
         self.__skill = skill
     
     def get_skill(self):
@@ -46,8 +46,16 @@ def try_class():
     stu.city = 'Beijing'
     stu.display_info()
     print('This student come from: ', stu.city)
-    
+    #Initialize new object of science_student
     stu_s = science_student('Tom', 900, 'computer')
+    #print("Science student's name is :", stu_s.get_name())
+    #Show the type of stu_s
+    print('The type of stu_s is :', type(stu_s))
+    #If this object is a instance of one kind of class
+    print('stu_s is a instance of student:', isinstance(stu_s, student))
+    #List all method and attribute of this class
+    print('All method and attribute in stu is :', dir(stu_s))		
+    
 
     
         
