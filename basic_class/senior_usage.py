@@ -25,6 +25,27 @@ class person(object):
 class man(person):
     pass
 
+class car(object):
+    def __init__(self, brandmark):
+        self.__brandmark = brandmark   
+    """
+    Define a decorator on an attribute
+    """
+    @property
+    def speed(self):
+        return self.__speed
+    @speed.setter
+    def speed(self, speed):
+        if not isinstance(speed, float):
+            raise ValueError('Speed must be a float point.')
+        if speed < 0 or speed > 500:
+            raise ValueError('Speed is not on correct range')
+        self.__speed = speed
+    #This attribute can only be read
+    @property
+    def brandmark(self):
+        return self.__brandmark
+
 def set_skill(self,skill):
     self.skill = skill
 
@@ -60,3 +81,14 @@ def run_demo():
     m = man()
     m.skill = 'computer'
     print('The skill of man is :', m.skill)
+    
+    c = car('Benz')
+    #This will raise an error
+    #c.speed = 400
+    #This will work free
+    c.speed = 300.0
+    print('Car speed is :', c.speed)
+    print('The brandmark of car is :', c.brandmark)
+    #Brandmark can only be read, so you can not set it.
+    #c.brandmark = 'BMW'
+    
