@@ -45,6 +45,10 @@ class car(object):
     @property
     def brandmark(self):
         return self.__brandmark
+        
+class Transformer(person, car):
+    #multiple inheritance, Mixln design
+    pass
 
 def set_skill(self,skill):
     self.skill = skill
