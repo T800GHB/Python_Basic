@@ -26,8 +26,16 @@ class man(person):
     pass
 
 class car(object):
-    def __init__(self, brandmark):
-        self.__brandmark = brandmark   
+    def __init__(self, brandmark, s = 0.0):
+        self.__brandmark = brandmark  
+        self.__speed = s
+        
+    #Class customization.If object reference an attribute that does not exist
+    #__getattr__ will call automatically.
+    def __getattr__(self, attr):        
+        if attr == 'horsepower':
+            return 1000
+        raise AttributeError("Car object has no attribute %s" %attr)    
     """
     Define a decorator on an attribute
     """
@@ -45,6 +53,8 @@ class car(object):
     @property
     def brandmark(self):
         return self.__brandmark
+        
+   
         
 class Transformer(person, car):
     #multiple inheritance, Mixln design
@@ -95,4 +105,10 @@ def run_demo():
     print('The brandmark of car is :', c.brandmark)
     #Brandmark can only be read, so you can not set it.
     #c.brandmark = 'BMW'
+    #This will call __getattr__, horsepower does not a attribute belong to car.
+    print('The horsepower of car is :', c.horsepower)
+    #This will also call __getattr__, but it will raise an error.
+    #print('The type of car is :', c.type)    
+    
+    
     
