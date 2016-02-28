@@ -9,6 +9,8 @@ This file will show how to use some senior property about class
 
 from types import MethodType
 
+from enum import Enum, unique
+
 class student(object):
     pass
 
@@ -53,6 +55,20 @@ class car(object):
     @property
     def brandmark(self):
         return self.__brandmark
+        
+"""
+This is a enum class, @unique decorator will make sure there is no repeated
+element.
+"""
+@unique
+class Weekday(Enum):
+    Sun = 0 # Set Sun's value to be 0
+    Mon = 1
+    Tue = 2
+    Wed = 3
+    Thu = 4
+    Fri = 5
+    Sat = 6
         
    
         
@@ -109,6 +125,14 @@ def run_demo():
     print('The horsepower of car is :', c.horsepower)
     #This will also call __getattr__, but it will raise an error.
     #print('The type of car is :', c.type)    
+    
+    #Define a object that is enum element
+    day = Weekday.Mon
+    print('Enum element :',day)
+    print('Enum element value:', day.value)
+    print('Object and Enum element :', day == Weekday.Mon)
+    print('Enum element index as name', Weekday['Tue'])
+    print('Enum element value index as name', Weekday['Tue'].value)
     
     
     
