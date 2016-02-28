@@ -14,11 +14,15 @@ def error_raise(var):
     if var == 0:
         raise ValueError('invalid value: %d' % var)
     return 10 / var
+    
+def assert_demo(var):
+    assert var != 0, "Zero value!"
+    return 10 / var
 
 def run_demo():
     """
     This stript demostrate how to handle the exception
-    """
+    """    
     var = input('Input an number: ')
     """
     If some error will occur in this procedure, put it into try block.
@@ -29,6 +33,13 @@ def run_demo():
     try:
         print('try...')        
         r = 10 / int(var)
+        """
+        If the AssertionError raised, only do something in finally,
+        then the program will stop.
+        When you are not working on debug model, run the program by
+        python -O, then assert will shut down.
+        """
+        assert_demo(0)
         #Catch the exception throwed.
         error_raise(0)
         #Handle the exception happened in the called function.
@@ -47,5 +58,5 @@ def run_demo():
         print('no error!')
     #No matter what has happened, finally block will execute.
     finally:
-        print('finally...')
+        print('finally...')    
     print('END')
