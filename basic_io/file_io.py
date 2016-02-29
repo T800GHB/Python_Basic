@@ -29,6 +29,7 @@ def run_demo():
         """
         Read all of file, and store it at fp.
         When the file is close, it also exist.
+        If open a file with 'r+' model, then the file can be wirte
         """
         fp1 = f2.read()
         #Read the specific size of file.
@@ -59,6 +60,18 @@ def run_demo():
         Write some content into file.
         """
         f5.write('Hello my mind')
+        #Make the pointer loacate to the head of file
+        f5.seek(0)
+        
+    with open('filepath/filename.txt', 'a') as f6:
+        """
+        Write some content to the rear of file, that means append it on rear.
+        If you open a existed file on 'w' model, system will clear the file
+        and write something what you want.
+        If you want to make sure whether the file has existed, you should us
+        os.path.isfile('filename') to confirm.
+        """
+        f6.write('Hello again')
         
         
         
