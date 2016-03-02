@@ -13,6 +13,9 @@ import threading
 balance = 0
 #Create thread lock
 lock = threading.Lock()
+#Create global threadLocal object
+local_school = threading.local()
+
 
 def change_it(n):
     """
@@ -33,6 +36,17 @@ def run_thread(n):
         finally:
             #Release lock, or resource
             lock.release()
+            
+def process_student():
+    #Acquire the local variable associate with current thread
+    std = local_school.student
+    print('Hello, %s (in %s)' % (std, threading.current_thread().name))
+    
+def process_thread(name):
+    # Bind local variable onto ThreadLocal
+    local_school.student = name
+    process_student()
+
 
 def loop():
     """
@@ -67,3 +81,18 @@ def run_demo_lock():
     t1.join()
     t2.join()
     print(balance)
+
+def run_demo_local():
+    """
+    Create two thread, then use ThreadLocal to store its local varibal.
+    No need to care about resource lock.
+    ThreadLocal will store local varibal for every thread independently.
+    """
+    t1 = threading.Thread(target= process_thread, 
+                          args=('Alice',), name='Thread-A')
+    t2 = threading.Thread(target= process_thread, 
+                      args=('Bob',), name='Thread-B')
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
