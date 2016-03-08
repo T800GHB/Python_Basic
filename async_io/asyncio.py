@@ -43,7 +43,7 @@ def run_demo_sleep():
     When i close current event loop, event loop could not be used 
     once again.
     If restart current python envirenment, it could be used normally.
-    I think it should not be closed.
+    I think it should not be closed, because it is a reference.
     """
     loop.close()
     
