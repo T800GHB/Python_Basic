@@ -6,6 +6,9 @@ Created on Tue Mar  8 23:15:09 2016
 
 This file will demostrate how to use asynchronous io.
 asyncio was introduced by python3.4 as built-in model.
+Python 3.5 new feature about asynchronous io(replacement):
+async --- @asyncio.coroutine
+await --- yield from
 """
 
 import asyncio
@@ -25,6 +28,8 @@ def execute():
     """
     yield from asyncio.sleep(3)
     print('Execute again %s' %threading.current_thread())
+    
+    
     
 def run_demo_sleep():
     """
@@ -69,3 +74,14 @@ def run_demo_wget():
             ['www.sina.com.cn','www.sohu.com','www.163.com']]
     loop_wget.run_until_complete(asyncio.wait(tasks))
     loop_wget.close()
+    
+async def hello():
+    """
+    This could run under python 3.5.
+    Pay attention to new feature, async and await.
+    If you have python 3.5 environment, run it with 'run_demo_sleep',
+    just replace 'execute()'
+    """
+    print("Hello world!")
+    r = await asyncio.sleep(1)
+    print("Hello again!")
