@@ -28,6 +28,7 @@ ndarray.itemsize
 ndarray.data
     buffer that store the real element of array. We will not use it directly.
     but get reference.
+    
 """
 
 """
@@ -85,7 +86,76 @@ def demo_create():
     l = np.linspace(1, 20, 16)
     print('Line space sequence\n', l)
     
+def demo_calculation():
+    """
+    Element-wise calculation is general operation on numpy array.
+    """
+    a = np.array([2, 4, 7, 9])
+    b = np.arange(4)
+    c = a + b
+    print('First array\n',a,'\nSecond array\n',b,'\nSum\n', c)
     
+    p = b** 2
+    print('Second array with power 2\n', p)
     
-
-
+    bool_array = a < 5
+    print('Element less than 5 in first array\n', bool_array)
+    
+    """
+    Array multiplication with * operation will element-wise calculation.
+    If you want to matrix-like multiplication, please use dot() function.
+    """
+    A = np.array([[2,3],[1, 4]])
+    B = np.array([[3,4],[2, 5]])
+    e_p = A * B
+    m_p = np.dot(A,B)
+    print('\nArray A\n', A, '\nArray B\n', B, '\n* product\n',e_p,
+          '\ndot product\n', m_p)
+    
+    """
+    *= , +=, -= etc operator will modify current array, but create
+    new one.
+    """
+    A += 10
+    B *= 2
+    print('\n A += 10 \n', A, '\n B*= 2 \n', B)
+    
+    """
+    Array Calculation with different data type will produce result that
+    upcast to higher precision.
+    """
+    AF = np.array([[1.1, 2.3, 4.8],[1.4, 4.5, 5.8]])
+    BI = np.ones((2,3), dtype = int)
+    ABF = AF + BI
+    print('\n Array with float data \n', AF, '\n Array with integer data\n', BI,
+          '\n Sum \n', ABF)
+    
+    """
+    sum(), min(), max() will work on all element in array, but if you give 
+    specific axis or dimension as first parameter, those function will just
+    work on that limited range    
+    """
+    s_af = AF.sum()
+    s_af_1 = AF.sum(axis = 0)
+    min_af = AF.min()
+    min_af_2 = AF.min(axis = 1)
+    max_af = AF.max()
+    max_af_1 = AF.max(axis = 0)
+    print('\n Sum of AF\n', s_af, '\n Sum of AF on dimension 1 \n', s_af_1,
+          '\n min of AF\n', min_af, '\n min of AF on dimension 2\n', min_af_2,
+          '\n max of AF\n', max_af, '\n max of AF on dimension 1\n', max_af_1)
+          
+    """
+    Numpy include some genral/utility function for element-wise operation.
+    Those operation are basic calcuation; for example sqrt , exp etc.
+    Offical document will provide more function:
+    all, alltrue, any, apply along axis, argmax, argmin, argsort, average, 
+    bincount, ceil, clip, conj, conjugate, corrcoef, cov, cross, cumprod, 
+    cumsum, diff, dot, floor, inner, inv, lexsort, max, maximum, mean, median,
+    min, minimum, nonzero, outer, prod, re, round, sometrue, sort, std, sum,
+    trace, transpose, var, vdot, vectorize, where
+    """
+    e_af = np.exp(AF)
+    sq_af = np.sqrt(AF)
+    print('\n AF exp \n', e_af, '\n AF sqrt \n',sq_af)
+    
