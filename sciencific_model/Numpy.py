@@ -240,4 +240,35 @@ def demo_shape():
     a.resize(2,8)
     print('resize as 2,8\n',a)
     a.shape = (2,-1,4)
-    print('3D array\n',a)    
+    print('3D array\n',a)
+
+def demo_formation():
+    """
+    stack function will assemble two block data.
+    Assembly will operate on dimension both they have.
+    vstack operate on vertical direction.
+    hstack operate on horizontal direction.
+    More function, reference column_stack, row_stack, concatenate
+    """
+    a = np.floor(10*np.random.random((2,2)))
+    b = np.floor(10*np.random.random((2,2)))
+    avb = np.vstack((a,b))
+    ahb = np.hstack((a,b))
+    print('Data a\n',a,'\nData b\n',b,'\nvertical assembly\n',avb,
+          '\nhorizontal assembly\n',ahb)
+          
+    """
+    hsplit function will split array with horizontal direction.
+    vsplit function do it on vertical direction.
+    If you give a tuple as second argument, that will be treated as formation
+    you want to split.
+    """
+    c = np.arange(24).reshape(2,12)
+    ch = np.hsplit(c, 3)
+    cv = np.vsplit(c,2)
+    c34 = np.hsplit(c,(3,5,8))
+    print('\nData c\n',c,'\nHorizontal split to 3 part\n',ch,
+          '\nVertical split to 2 part\n',cv,
+          '\nHorizontal split as specific\n',c34)
+    
+    
