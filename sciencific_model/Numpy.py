@@ -29,6 +29,31 @@ ndarray.data
     buffer that store the real element of array. We will not use it directly.
     but get reference.
     
+Function introduction
+
+Array creation:
+arange, array, copy, empty, empty_like, eye, fromfile, fromfunction, identity, linspace, logspace, mgrid, ogrid, ones, ones_like, r , zeros, zeros_like 
+
+Convertion:
+astype, atleast 1d, atleast 2d, atleast 3d, mat 
+
+Formation operation:
+array split, column stack, concatenate, diagonal, dsplit, dstack, hsplit, hstack, item, newaxis, ravel, repeat, reshape, resize, squeeze, swapaxes, take, transpose, vsplit, vstack 
+
+Inquiry:
+all, any, nonzero, where 
+
+Sort:
+argmax, argmin, argsort, max, min, ptp, searchsorted, sort 
+
+Calculation:
+choose, compress, cumprod, cumsum, inner, fill, imag, prod, put, putmask, real, sum 
+
+Statistics:
+cov, mean, std, var 
+
+Linear algebra:
+cross, dot, outer, svd, vdot    
 """
 
 """
@@ -147,13 +172,7 @@ def demo_calculation():
           
     """
     Numpy include some genral/utility function for element-wise operation.
-    Those operation are basic calcuation; for example sqrt , exp etc.
-    Offical document will provide more function:
-    all, alltrue, any, apply along axis, argmax, argmin, argsort, average, 
-    bincount, ceil, clip, conj, conjugate, corrcoef, cov, cross, cumprod, 
-    cumsum, diff, dot, floor, inner, inv, lexsort, max, maximum, mean, median,
-    min, minimum, nonzero, outer, prod, re, round, sometrue, sort, std, sum,
-    trace, transpose, var, vdot, vectorize, where
+    Those operation are basic calcuation; for example sqrt , exp etc.    
     """
     e_af = np.exp(AF)
     sq_af = np.sqrt(AF)
