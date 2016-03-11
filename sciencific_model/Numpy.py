@@ -159,3 +159,61 @@ def demo_calculation():
     sq_af = np.sqrt(AF)
     print('\n AF exp \n', e_af, '\n AF sqrt \n',sq_af)
     
+def demo_index():
+    """
+    [] is interface to index element or more than one in array.
+    Index one dimension array :
+    [n] could index one element
+    [n:m] could index a range named slice.
+    If miss n means start from 0, m means end to max.    
+    """
+    a = np.arange(10)**2
+    a5 = a[4]
+    a37 = a[2:6]
+    print('Data\n',a,'\n Fifth element \n', a5, '\n Element from 3 to 7\n',a37)
+
+    """
+    If you provide a addtional : and parameter after range : operator means 
+    interval on this range.
+    If additional paramenter is negtive integer means reversed order to index.
+    """    
+    a062 = a[: 6 : 2]
+    print('\n Element from 0 to 6 with 1 interval \n', a062)
+    a942 = a[::-2]
+    print('\n Elemnt from 9 to 0 with 1 interval \n', a942) 
+    
+    """
+    Index a element or a range in multi-dimensional array, you need to 
+    set index for every axis, use comma to separate different dimension.
+    Use : on to a axis means select all element associate with to this dimension.
+    Miss parameter on a dimension means use all slice on this dimension.
+    ... means more than one :. For example [:,:,:,1] equal [...,1]
+    select all dimensions before or after this one.
+    """
+    b =         np.arange(20).reshape(5,4)    
+    b34 =       b[2,3]
+    b052 =      b[0:5, 1]       #each row in the second column of b
+    b_ar_4 =    b[:,3]          #equivalent to previrous example
+    b_24_ac =   b[1:3, :]       # each column in the second and third row of b
+    b_last =    b[-1]           #the last row
+    print('\n Data \n', b, '\n Element on 3 row , 4 column \n', b34,
+          '\n each row in the second column \n', b_ar_4,
+          '\n each column in the second and third row \n', b_24_ac,
+          '\n last row \n', b_last)
+    
+    c =         np.arange(24).reshape(2,3,4)
+    c1 =        c[...,1]
+    c2 =        c[1,...]
+    print('\n 3 dimension array\n', c, '\n No.2 element at last dimension\n',c1,
+    '\n No.2 element at first dimension\n',c2, '\n Flattened data is :')
+    
+    """
+    flat attribute will provide a iterator that sequence of iteration will 
+    flatten as dimensions order.
+    """
+    for item in c.flat:
+        print(item)
+    """
+    More function about index, please reference newaxis, 
+    ndenumerate, indices, index exp
+    """
