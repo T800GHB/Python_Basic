@@ -271,4 +271,36 @@ def demo_formation():
           '\nVertical split to 2 part\n',cv,
           '\nHorizontal split as specific\n',c34)
     
+def demo_copy():
+    """
+    There are 3 satuation about duplication:
+    reference copy(No data copy), view copy(No data copy), deep copy(data copy).
+    reference copy will not create new object, you can treat it as alias.
+    view copy will create new view, new view will share data with orignal one,
+    but they colud own different form indpendently, such as shape.
+    Slice of array is view of part that you have selected.
+    """
+    #Reference copy
+    a = np.arange(12)
+    b = a
+    print('Data a\n',a,'\nData b\n',b,'\na is b\n',a is b)
+    b.shape = (3,4)
+    print('Data b change shape to \n',b.shape, '\nShape of data a \n',a.shape)
     
+    #view copy
+    c = a.view()
+    c.shape = (6,2)
+    print('c is view of a, c is a?\n',c is a, 
+          '\nbase of c is a?\n', c.base is a,
+          '\n Shape of c\n',c.shape,
+          '\n Shape of a\n', a.shape)
+    c[1,0] = 1000
+    print('c change element at [1,0] be 1000, data c now\n',c,
+          '\ndata a now\n',a)       #Data has changed.
+          
+    #Deep copy
+    d = a.copy()
+    print('Data d \n',d,'\nd is a?\n',d is a,'\nbase of d is a?\n', d.base is a)
+    d[1,2] = 500
+    print('d change  element at [1,2] be 500, data d now\n',d,
+          '\ndata a now\n',a)
