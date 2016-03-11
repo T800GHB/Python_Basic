@@ -217,3 +217,27 @@ def demo_index():
     More function about index, please reference newaxis, 
     ndenumerate, indices, index exp
     """
+    
+def demo_shape():
+    """
+    Shape of array indicated by length on each axis.
+    So ,if you want to reshape array , just change the lenght of axis.
+    ravel() will return a flattened array.
+    Shape attribute will control shape of itself, change it , shape different.
+    reshape() will return a new array with new shape.
+    transpose() will switch location of element in array by diagonal.
+    resize will change itself, but total element could be changed,
+    if the elemet does not exist, pad with zeros.   
+    If you give a -1 as length of axis, it will be infered automatically,
+    Only 1, or it will confront ambiguousness.
+    """
+    a = np.floor(10*np.random.random((3,4)))  #floor will reserve integer part.
+    print('Data\n',a)
+    a.shape = (6,2)
+    print('Shape as (6,2)\n',a)
+    a.transpose()
+    print('Transposed array\n',a)
+    a.resize(2,8)
+    print('resize as 2,8\n',a)
+    a.shape = (2,-1,4)
+    print('3D array\n',a)    
