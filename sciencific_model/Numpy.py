@@ -437,3 +437,20 @@ def demo_broadcast():
     x,y = np.ogrid[0:1:4j, 0:1:3j]
     print('Two array to form grid, use broadcast\n',x,'\n',y)
     
+    """
+    ix_() function could combine different vector for acquiring 
+    multi-dimensional array.
+    """
+    a = np.array([2,3,4,5])
+    b = np.array([8,5,4])
+    c = np.array([5,4,6,8,3])    
+    ax,bx,cx = np.ix_(a,b,c)    
+    print('\n Use ix_ to data a,b,c produce ax,bx,cx\n',ax,'\n',bx,
+          '\n',cx,
+          '\n Shape of ax,bx,cx is\n',ax.shape, bx.shape, cx.shape,
+          )
+    r = ax + bx * cx
+    r_r = a[3] + b[2] * c[4]
+    print('\n Result of ax + bx * cx is \n',r,
+          '\n Result of r[3,2,4] is \n',r[3,2,4],
+          '\n Result of a[3] + b[2] * c[4] is \n', r_r)
