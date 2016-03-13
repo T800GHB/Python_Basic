@@ -323,3 +323,25 @@ def demo_copy():
     d[1,2] = 500
     print('d change  element at [1,2] be 500, data d now\n',d,
           '\ndata a now\n',a)
+          
+def demo_broadcast():
+    """
+    Broadcast rule:
+    1.Have same dimensions/shape, if they don't , pid 1 to that part.
+    2.Shape of output array is max length on each dimension of input array.
+    3.If they don't have same length at same axis, can't do calculation.
+    4.Use first group value , if they have 1 length on that dimension.
+    Maybe there are some wrong comprehension, i will fixed later.
+    """
+    a = np.arange(0,60,10).reshape(-1,1)
+    b = np.arange(0,5)                     
+    c = a + b
+    print('Data a\n',a,'\nShape a\n',a.shape,
+          '\nData b\n',b,'\nShape b\n',b.shape,
+          '\na + b\n',c,'\nShape of reuslt\n',c.shape)
+    """
+    ogrid return two array that could use broadcast calculation.
+    """
+    x,y = np.ogrid[0:1:4j, 0:1:3j]
+    print('Two array to form grid, use broadcast\n',x,'\n',y)
+    
