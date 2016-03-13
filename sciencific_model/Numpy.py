@@ -237,6 +237,57 @@ def demo_index():
     ndenumerate, indices, index exp
     """
     
+def demo_senior_index():
+    """
+    Use array to index array
+    """
+    a = np.arange(12)
+    i = np.array([1,2,3,6,7])
+    r = a[i]
+    print('Data a\n', a, '\nIndex array\n',i,'\nResult a[i]\n',r)
+    
+    """
+    Use  a bidimensional array of indices, result will be the same
+    shape of indices
+    """
+    j = np.array([[1,2],[8,10]])
+    r = a[j]
+    print('Index array\n',j, '\nResult [j]\n',r)
+    
+    """
+    If the data is multi-dimensional array, every unique 
+    array of indices will use first dimension.
+    """
+    palette = np.array( [ [0,0,0],                # black
+                    [255,0,0],              # red
+                    [0,255,0],              # green
+                    [0,0,255],              # blue
+                    [255,255,255] ] )       # white
+    image = np.array( [ [ 0, 1, 2, 0 ],        
+                  [ 0, 3, 4, 0 ]  ] )
+    r = palette[image]
+    print('Multi-dimension data\n',palette,'\nArray of indices\n',image,
+          '\nResult \n',r)
+    """
+    Use array to preform multi-dimensional index, those array must have 
+    same shape.
+    This techique could combine with slice or bind indices of array to a list,
+    then use this list to preform index.
+    """
+    a.shape = (3,4)
+    x = np.array([[0,1],[1,0]])
+    y = np.array([[2,2],[1,3]])
+    r = a[x,y]
+    r_f = a[x,2]
+    r_s = a[:,y]
+    l = [x,y]
+    r_l = a[l]
+    print('Change shape of a as (3,4)\n',a,
+          '\nArray of indices x\n',x,'\nArray of indices y\n',y,
+          '\nSame result with a[x,y] or l = [x,y] , a[l]\n',r,'\n\n',r_l,
+          '\nResult a[x,2]\n',r_f,'\nSlice reslult \n',r_s)
+    
+    
 def demo_shape():
     """
     Shape of array indicated by length on each axis.
