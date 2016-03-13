@@ -293,6 +293,17 @@ def demo_senior_index():
     r = a.argmax(axis = 0)
     print('Max element index on each column\n',r)
     
+    """
+    Use array of indices to assign value.
+    If there are same element on this array of indices,
+    reserve last assignment.
+    """
+    a.shape = (12,)   
+    print('Change shape of a to (1,12)\n',a)
+    a[[1,3,5]] = 100
+    print('\nassign [1,3,5] and to 100\n',a)
+    a[[0,0,4]] = 200
+    print('\nassign [0,0,4] to 200\n',a)
     
     
 def demo_shape():
