@@ -287,6 +287,13 @@ def demo_senior_index():
           '\nSame result with a[x,y] or l = [x,y] , a[l]\n',r,'\n\n',r_l,
           '\nResult a[x,2]\n',r_f,'\nSlice reslult \n',r_s)
     
+    """
+    Argmax will return index that max element on specific dimension.
+    """
+    r = a.argmax(axis = 0)
+    print('Max element index on each column\n',r)
+    
+    
     
 def demo_shape():
     """
