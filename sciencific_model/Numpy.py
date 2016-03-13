@@ -271,7 +271,7 @@ def demo_senior_index():
     """
     Use array to preform multi-dimensional index, those array must have 
     same shape.
-    This techique could combine with slice or bind indices of array to a list,
+    This technique could combine with slice or bind indices of array to a list,
     then use this list to preform index.
     """
     a.shape = (3,4)
@@ -305,6 +305,29 @@ def demo_senior_index():
     a[[0,0,4]] = 200
     print('\nassign [0,0,4] to 200\n',a)
     
+    """
+    Use bool array to perform index.
+    This technique is very important for filtering element.
+    """
+    a = np.arange(12).reshape(3,4)
+    b = a > 5
+    r = a[b]
+    print('\nThe indices of element greater than 5\n',b,
+          '\nThe elements greater than 5\n',r)
+    a[b] = 0
+    print('Assign the elements greater than 5 to be 0, use a[b] = 0\n',a)
+    """
+    Combine bool array with slice to perform index.
+    """
+    a = np.arange(12).reshape(3,4)
+    b1 = np.array([True,False,True])
+    b2 = np.array([True, False, False, True])
+    print('First dimension filter b1\n',b1,'Second dimension filter b2\n',b2)
+    c1 = a[b1,:]
+    c2 = a[:,b2]
+    c3 = a[b1,b2]
+    print('\nFilter row with a[b1,:]\n',c1,'\nFilter column with filter\n',c2,
+          '\nFilter row and column with a[b1,b2]\n',c3)
     
 def demo_shape():
     """
