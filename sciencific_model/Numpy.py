@@ -61,6 +61,10 @@ I just want to distinguish between numpy and native python,
 so choose import numpy as np instead of from numpy import *
 """
 import numpy as np
+"""
+Linear algebra package in numpy
+"""
+import numpy.linalg as nla
 
 def demo_attribute():
     """
@@ -454,3 +458,23 @@ def demo_broadcast():
     print('\n Result of ax + bx * cx is \n',r,
           '\n Result of r[3,2,4] is \n',r[3,2,4],
           '\n Result of a[3] + b[2] * c[4] is \n', r_r)
+          
+def demo_linalg():
+    """
+    Linear algebra.
+    Transpose, inverse, create array like I matrix, matrix multiplication,
+    trace, solve matrix equation, solve eigenvalues etc.
+    """
+    a = np.array([[1.,2.],[3.,4.]])
+    at = a.transpose()
+    ai = nla.inv(a)
+    I = np.eye(2)               #eye represents I matrix
+    b = np.array([[1.,1.],[1.,1.]])
+    print('Data a\n',a,'\n Data b\n',b,'\n Data I\n',I,
+          '\n Transpose of a\n',at,'\n Inverse of a\n',ai)
+    at = np.trace(a)
+    y = np.array([3.,7])
+    s = nla.solve(a,y)
+    e = nla.eig(b)
+    print('Trace of a\n',at,'\n Give object y\n',y,
+          '\nSolve of ax = y\n',s,'\n eigenvalues of b\n',e)
