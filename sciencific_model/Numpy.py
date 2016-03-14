@@ -386,6 +386,17 @@ def demo_formation():
           '\nVertical split to 2 part\n',cv,
           '\nHorizontal split as specific\n',c34)
     
+    """
+    Vector combination. Choose a direction that you want to assembly
+    """
+    x = np.arange(0,10,2)
+    y = np.arange(5)
+    xvy = np.vstack([x,y])
+    xhy = np.hstack([x,y])
+    print('\n Vector x\n',x, '\n Vecotor y\n',y,
+          '\n Vertical stack x,y\n',xvy,
+          '\n Horizontal stack x,y\n',xhy)          
+    
 def demo_copy():
     """
     There are 3 satuation about duplication:
