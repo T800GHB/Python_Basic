@@ -478,3 +478,70 @@ def demo_linalg():
     e = nla.eig(b)
     print('Trace of a\n',at,'\n Give object y\n',y,
           '\nSolve of ax = y\n',s,'\n eigenvalues of b\n',e)
+          
+def demo_matrix():
+    """
+    Matrix is a kind of data structure
+    """
+    A = np.matrix('1 2; 3, 4')
+    At = A.T
+    X = np.matrix('4 8')
+    Y = X.T
+    AXt = A * Y         #Matrix multiplication
+    Ai = A.I
+    s = nla.solve(A,Y)
+    print('Matrix data A\n',A,'\n Matrix data X\n',X,
+          '\n Transpose of A\n',At, '\n Transpose of X --- Y\n',Y,
+          '\n Matrix multiplication A * Y\n',AXt,
+          '\n Inverse of A\n',Ai,
+          '\n Solve of Ax = Y\n',s)
+          
+    """
+    mat() could convert array to matrix.
+    """
+    a = np.arange(12).reshape(3,4)
+    m = np.mat(a.copy())
+    print('Array a\n',a,'\n Matrix m convert from a \n',m,
+          '\n type of a\n',type(a),'\n type of m \n',type(m),
+          '\n shape of a\n',a.shape, '\n shape of m\n',m.shape)
+          
+    """
+    Slice of array is just a view of array.
+    Dimension of Slice of array will be as small as possible.
+    """
+    print('Slice of a[:,1]\n',a[:,1],'\n Shape of this slice\n',a[:,1].shape,
+          'Slice of m[[:,1]\n',m[:,1],'\n Shape of this slice\n',m[:,1].shape)
+          
+    """
+    Matrix index.
+    [] and slice and most of them are same as array.
+    But, array are more convenient than matrix, so , use A attribute to
+    get a array of this matrix.     
+    """
+    m1 = m[:,[1,3]]
+    m2 = m[:,].take([1,3], axis = 1)
+    m3 = m[1:,].take([1,3], axis = 1)
+    mc = m[np.ix_((1,2),(1,3))]
+    ma = m.A                            #A attribute return convertion of array
+    print('Get second and fourth column with m[:,[1,3]]\n', m1,
+          '\nGet same data use take function\n',m2,
+          '\nGet same data without second row, use m[1:,[1,3]]\n',m3,
+          '\nGet same data, use cross product\n',mc,
+          '\nGet Array of matrix\n',ma)
+    """
+    Get some of column that element of first row greater than 1.
+    If use bool array, matrix will not provide result that you wish.
+    """
+    a1 = a[0,:] > 1
+    ag1 = a[:,a1]
+    m1 = m[0,:] > 1
+    #mg1 = m[:,m[0,:] > 1]     #Wrong,
+    mg1m = m[:,m.A[0,:] > 1]
+    a21 = a[a[:,0]>2,a[0,:]>1]      #Pay attention to index order
+    m21 = m[m.A[:,0]>2,m.A[0,:]>1]
+    print('Columns that element of first row greater than 1 in a indices\n',a1,
+          '\ndata in a\n',ag1,
+          '\nColumns that element of first row greater than 1 in m indices\n',m1,          
+          '\nGet same result with array a, use m[:,m.A[0,:] > 1]\n',mg1m,
+          '\nmulti-dimensional slice a[a[0,:]>2,a[:,0]>1]\n',a21,
+          '\nmulti-dimensional slice m[m.A[0,:]>2,m.A[:,0]>1]\n',m21)
