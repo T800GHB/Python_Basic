@@ -556,3 +556,22 @@ def demo_matrix():
           '\nGet same result with array a, use m[:,m.A[0,:] > 1]\n',mg1m,
           '\nmulti-dimensional slice a[a[0,:]>2,a[:,0]>1]\n',a21,
           '\nmulti-dimensional slice m[m.A[0,:]>2,m.A[:,0]>1]\n',m21)
+          
+def demo_histogram():
+    """
+    Numpy's histogram will return data.
+    Matplotlib will plot a diagram directly.
+    """
+    import pylab
+    # Build a vector of 10000 normal deviates with variance 0.5^2 and mean 2
+    mu, sigma = 2, 0.5
+    v = np.random.normal(mu,sigma,10000)
+    # Plot a normalized histogram with 50 bins
+    pylab.figure(1)
+    pylab.hist(v, bins=50, normed=1)       # matplotlib version (plot)
+    pylab.show()
+    # Compute the histogram with numpy and then plot it
+    pylab.figure(2)
+    (n, bins) = np.histogram(v, bins=50, normed=True)  # NumPy version (no plot)
+    pylab.plot(.5*(bins[1:]+bins[:-1]), n)
+    pylab.show()
