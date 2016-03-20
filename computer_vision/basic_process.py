@@ -56,3 +56,55 @@ def demo_PIL():
     I expect there is a window to display no matter what form it is.
     """
     im.show()
+    
+    
+def demo_mpl():
+    """
+    Open a image file and store it in a numpy array, draw something on it.
+    """
+    im = np.array(Image.open('./computer_vision/scenery.jpg'))
+    pl.imshow(im)
+    x = [100, 100, 400, 400]
+    y = [200, 500, 200, 500]    
+    pl.plot(x,y,'r*')
+    pl.plot(x[:2],y[:2],'y-')
+    pl.title('Picture: scenery.jpg')
+    """turn off the axis"""
+    pl.axis('off')
+    pl.show()
+    
+def demo_contour():
+    """
+    Show the contour and histogram of image.
+    """
+    im = np.array(Image.open('./computer_vision/scenery.jpg').convert('L'))
+    """Create a new figure, then plot on it, just like a new canvas"""
+    pl.figure('Image information')
+    """Do not use color information"""
+    pl.gray()
+    """Create a subplot on this figure, allocate location"""
+    pl.subplot(1,2,1)
+    """Contour image"""
+    pl.contour(im, origin='image')
+    """equal increments"""
+    pl.axis('equal')
+    pl.axis('off')
+    """
+    Calculate histogram. We should flatten data firstly,
+    then specify number of bins
+    """
+    pl.subplot(1,2,2)
+    pl.hist(im.flatten(), 128)
+    pl.show()
+
+def demo_interactive():
+    """
+    Interactive label
+    """    
+    im = np.array(Image.open('./computer_vision/scenery.jpg'))
+    pl.imshow(im)   
+    print('Please click 3 points')
+    """Get mouse click input from GUI"""
+    x = pl.ginput(3)
+    print("You've clicked:",x)
+    pl.show()
