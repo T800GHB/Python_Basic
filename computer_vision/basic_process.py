@@ -135,3 +135,32 @@ def demo_graymapping():
     pl.title('Square pixel value')
     pl.imshow(im_s)    
     pl.show()
+    
+def demo_histeq():
+    """
+    Gray histogram equalization, make every gray value have same distribution.
+    This process could imporve contrast of image.
+    """
+    im = np.array(Image.open('./computer_vision/scenery.jpg').convert('L'))
+    imhist, bins = np.histogram(im.flatten(), bins = 256, normed = True)
+    cdf = imhist.cumsum()
+    """Normalization"""
+    cdf = 255 * cdf / cdf[-1]
+    im_n = np.interp(im.flatten(),bins[:-1], cdf)
+    """
+    Image of equalization.
+    I don't know why reshape() function can't modify shape attribute, 
+    it just change the arrangement of output if you print it out.
+    I've tried when you create a array with reshape(), it works.
+    """
+    #im_n.reshape(im.shape)
+    im_n.shape = im.shape
+    
+    pl.figure('Histogram equalization')
+    pl.subplot(1,2,1)
+    pl.imshow(im)
+    pl.title('Orignal gray image')
+    pl.subplot(1,2,2)
+    pl.imshow(im_n)
+    pl.title('equalized image')
+    pl.show()
