@@ -108,3 +108,30 @@ def demo_interactive():
     x = pl.ginput(3)
     print("You've clicked:",x)
     pl.show()
+    
+def demo_graymapping():
+    """
+    Gray space mapping, just change the way of distribution
+    """
+    im = np.array(Image.open('./computer_vision/scenery.jpg').convert('L'))
+    """Reverse mapping"""
+    im_r = 255 - im
+    """Mapping gray space to specific range[100, 200]"""
+    im_f = (100.0 / 255) * im + 100
+    """Square pixel value"""
+    im_s = 255 * (im/ 255.0)**2
+    """Show image"""
+    pl.figure('Gray space mapping')    
+    pl.subplot(2,2,1)
+    pl.title('orignal gray image')
+    pl.imshow(im)
+    pl.subplot(2,2,2)
+    pl.title('Reversed gray')
+    pl.imshow(im_r)
+    pl.subplot(2,2,3)
+    pl.title('Mapping to a [100,200]')
+    pl.imshow(im_f)
+    pl.subplot(2,2,4)
+    pl.title('Square pixel value')
+    pl.imshow(im_s)    
+    pl.show()
