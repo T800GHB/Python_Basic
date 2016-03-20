@@ -164,3 +164,23 @@ def demo_histeq():
     pl.imshow(im_n)
     pl.title('equalized image')
     pl.show()
+    
+def demo_average():
+    """
+    Calculate a mean of images.
+    """
+    imlist = os.listdir(image_floder)       #Set path to floder of images
+    """Open first image, then store it to a float array"""
+    average_im = np.array(Image.open(imlist[0]),'f')
+    
+    for imname in imlist[1:]:
+        try:
+            average_im += np.array(Image.open(imname))
+        except:
+            print(imname + '...skipped')
+    average_im /= len(imlist)
+    
+    pl.figure('Mean image')
+    pl.imshow(average_im)
+    pl.axis('off')
+    pl.show()
