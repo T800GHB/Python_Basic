@@ -575,3 +575,81 @@ def demo_histogram():
     (n, bins) = np.histogram(v, bins=50, normed=True)  # NumPy version (no plot)
     pylab.plot(.5*(bins[1:]+bins[:-1]), n)
     pylab.show()
+    
+def demo_save():
+    """
+    Numpy provide two kind of way to save data:
+    binary and text file.
+    Binary file is designed for python, so it could not access without 
+    same language.
+    save() , savez(), savetxt() will save data and format.
+    tofile() will save data without format.
+    """
+    a = np.arange(12)
+    a.shape = (3,4)
+    b = np.arange(0,1,0.1)
+    c = np.sin(b)
+    """Save an array to a binary file in Numpy ".npy" format"""
+    np.save('array_a.npy',a)
+    a_load = np.load('array_a.npy')
+    print('The loaded array is:',a_load)
+    """
+    Save multi-array to a compressed file with postfix ".npz" .
+    if you pass a argument with or without key word. 
+    Key word will be name of array.
+    Argument without key word will be store as arr_0, arr_1,....
+    So I think named array will be better.
+    """
+    np.savez('multi_array.npz',a,b, sin_array = c)
+    r = np.load('multi_array.npz')
+    print('Loaded array a :\n',r['arr_0'])
+    print('Loaded array b :\n',r['arr_1'])
+    print('Loaded array sin_array :\n',r['sin_array'])
+    """
+    Save array to text file. Defult format use space to separate with 
+    precision %.18e
+    If you use comma to separate with precision %d, load it with same setting.    
+    """
+    d = np.arange(0,12, 0.5).reshape(4,-1)
+    np.savetxt('array_d.txt',d)
+    d_txt = np.loadtxt('array_d.txt')
+    print('Loaded array d with text format:\n', d_txt)
+    np.savetxt('array_d.txt', d, fmt = '%d', delimiter = ',')
+    """
+    Pay attention to type of separation, 
+    so add key word argument "delimiter" when load it.
+    """
+    d_d_txt = np.loadtxt('array_d.txt', delimiter = ',')
+    print('Loaded array d with integer precision:\n',d_d_txt)
+    """
+    Use file handler to store more than one array into a .npy file
+    In python2.x, you could use file() to create a file object.
+    In python3.x, use open().
+    """
+    a.shape = (12,)                 #Vector
+    a_a = np.add.accumulate(a)  #accumulate will calculate perfix sum.
+    a_s = a + a_a
+    with open('array_file.npy','wb') as f:
+        np.save(f,a)
+        np.save(f,a_a)
+        np.save(f,a_s)
+    """Load data file, use file handler to access data with store sequence."""
+    with open('array_file.npy','rb') as f:
+        r_a = np.load(f)
+        r_a_a = np.load(f)
+        r_a_s = np.load(f)
+    print('Data a:\n',r_a)
+    print('Perfix sum of a:\n',r_a_a)
+    print('Sum of a and its perfix sum:\n',r_a_s)
+    """
+    Save data without format.
+    So you should specify the format when load data.
+    """    
+    a.shape = (3,4)    
+    a.tofile('array.bin')
+    a_bin = np.fromfile('array.bin', dtype = np.int64)    #Precision!!!
+    """When this step has been finished, orignal data could be achived."""
+    a_bin.shape = (3,4)
+    print('Data achived from binary file without format:\n',a_bin)    
+    
+    
