@@ -12,6 +12,8 @@ import numpy as np
 from scipy.optimize import leastsq
 import pylab as pl
 from scipy import interpolate
+import weave
+import time
 
 def func(x, p):
     """
@@ -64,8 +66,11 @@ def demo_B_spline():
     y = np.sin(x)
     
     x_new = np.linspace(0, 2*np.pi+np.pi/4, 100)
+    """Linear interpolate, return a function who calculate interpolation"""
     f_linear = interpolate.interp1d(x, y)
+    """Find the B-spline representation of 1-D curve."""
     tck = interpolate.splrep(x, y)
+    """Evaluate a B-spline or its derivatives."""
     y_bspline = interpolate.splev(x_new, tck)
     
     pl.figure('Interpolate')
@@ -74,3 +79,51 @@ def demo_B_spline():
     pl.plot(x_new, y_bspline, label = 'B-Spline interpolate')
     pl.legend()
     pl.show()
+    
+def cpp_sum(a):
+    """
+    C++ program execute on python.
+    """
+    n = len(a)
+    code = """
+    int i;
+    double counter;
+    counter = 0;
+    for(i = 0; i < n; i++)
+    {
+        counter = counter + a(i);
+    }
+    return_val = counter;
+    """
+    err = weave.inline(
+    code, ['a','n'],
+    type_converters = weave.converters.blitz,
+    compiler = 'gcc')
+    
+    return err
+    
+def demo_Weave():
+    """
+    Weave could embed some C++ program on python, this block of code coule
+    run faster.
+    This part of code can't not run on python, because weave can't import.
+    This problem will be solved later.
+    """
+    a = np.arange(0, 10000000, 1.0)
+    """First time to call C++ program, python will compile it then execute"""
+    cpp_sum(a)
+    
+    start = time.clock()
+    for i in range(100):
+        cpp_sum(a)
+    print('Cpp_sum time:', (time.clock() - start))
+    
+    start = time.clock()
+    for i in range(100):
+        np.sum(a)
+    print('np.sum time:',(time.clock() - start))
+    
+    start = time.clock()
+    sum(a)
+    print('Python sum:', (time.clock() - start))
+    
