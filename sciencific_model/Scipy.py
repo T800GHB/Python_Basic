@@ -11,6 +11,7 @@ computer vision field.
 import numpy as np
 from scipy.optimize import leastsq
 import pylab as pl
+from scipy import interpolate
 
 def func(x, p):
     """
@@ -52,5 +53,24 @@ def demo_leastsq():
     pl.plot(x, y0, label='Real data')
     pl.plot(x, y1, label='Real data with noise')
     pl.plot(x, func(x, plsq[0]), label='Fitted data')
+    pl.legend()
+    pl.show()
+    
+def demo_B_spline():
+    """
+    Interpolate B spline
+    """
+    x = np.linspace(0, 2*np.pi+np.pi/4, 10)
+    y = np.sin(x)
+    
+    x_new = np.linspace(0, 2*np.pi+np.pi/4, 100)
+    f_linear = interpolate.interp1d(x, y)
+    tck = interpolate.splrep(x, y)
+    y_bspline = interpolate.splev(x_new, tck)
+    
+    pl.figure('Interpolate')
+    pl.plot(x, y, 'o', label = 'Orignal data')
+    pl.plot(x_new, f_linear(x_new), label = 'Linear interpolate')
+    pl.plot(x_new, y_bspline, label = 'B-Spline interpolate')
     pl.legend()
     pl.show()
