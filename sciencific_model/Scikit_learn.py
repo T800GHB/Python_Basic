@@ -15,6 +15,7 @@ from sklearn import svm
 from sklearn.externals import joblib
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
+from sklearn import linear_model
 
 def demo_quick_start():
     """
@@ -90,4 +91,26 @@ def demo_knn():
     print('Prdicted result is:\n',result)
     print('Ground truth is:\n',iris_label_test)
     
-    
+def demo_linear_regression():
+    """
+    This block will demostrate how to use linear regression to fit Diabetes
+    dataset ,then to predict state of new patients.
+    """
+    diabetes = datasets.load_diabetes()
+    diabetes_data_train = diabetes.data[:-20]
+    diabetes_label_train = diabetes.target[:-20]
+    diabetes_data_test = diabetes.data[-20:]
+    diabetes_label_test = diabetes.target[-20:]
+    """Create and fit a linear regressor"""
+    linreg = linear_model.LinearRegression()
+    linreg.fit(diabetes_data_train, diabetes_label_train)
+    print('The parameter of this linear model:\n',linreg.coef_)
+    """Calculate mean square error"""
+    mse = np.mean((linreg.predict(diabetes_data_test) - diabetes_label_test)**2)
+    print('Mean square error on test set is:\n',mse)
+    """
+    Explained variance score: 1 is perfect prediction
+     and 0 means that there is no linear relationship between X and Y.
+    """
+    score = linreg.score(diabetes_data_test, diabetes_label_test)
+    print('Relation coefficient between test data and label is:\n',score)
