@@ -13,6 +13,8 @@ scikit-learn has contained some dataset, such as  iris and digits.
 from sklearn import datasets
 from sklearn import svm
 from sklearn.externals import joblib
+from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
 
 def demo_quick_start():
     """
@@ -59,4 +61,33 @@ def demo_quick_start():
     clf_dup.set_params(kernel = 'linear').fit(
     digits.data[:-1], digits.target[:-1])
     print('Category of first image is:', clf_dup.predict(digits.data[0:1]))
+    
+def demo_knn():
+    """
+    This block will demostrate how to use KNN algorithm as classifier to 
+    deal with iris data.
+    """
+    iris = datasets.load_iris()
+    iris_data = iris.data
+    iris_label = iris.target
+    print('Categories in iris dataset is :\n',np.unique(iris_label))
+    """
+    Split iris data in train and test data.
+    A random permutation, to split the data randomly.
+    """
+    np.random.seed(0)
+    """Randomly permute a sequence, or return a permuted range."""
+    indices = np.random.permutation(len(iris_label))
+    iris_data_train = iris_data[indices[:-10]]
+    iris_label_train = iris_label[indices[:-10]]
+    iris_data_test = iris_data[indices[-10:]]
+    iris_label_test = iris_label[indices[-10:]]
+    """Create and fit a nearest-neighbor classifier"""
+    knn = KNeighborsClassifier()
+    knn.fit(iris_data_train, iris_label_train)
+    """Predicted result"""
+    result = knn.predict(iris_data_test)
+    print('Prdicted result is:\n',result)
+    print('Ground truth is:\n',iris_label_test)
+    
     
