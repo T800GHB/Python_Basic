@@ -73,6 +73,40 @@ def demo_mpl():
     pl.axis('off')
     pl.show()
     
+def demo_channel():
+    """
+    Open a image, store it in a numpy array.
+    """
+    im = np.array(Image.open('./computer_vision/scenery.jpg'))    
+    print('Shape of image is ', im.shape)
+    """
+    Demostate different channel.
+    """    
+    red = np.zeros(im.shape)
+    red[...,0] = im[...,0]
+    green = np.zeros(im.shape)
+    green[...,1] = im[...,1]
+    blue = np.zeros(im.shape)
+    blue[...,2] = im[...,2]
+    pl.figure('Different channel')
+    pl.subplot(2,2,1)
+    pl.title('Orignal image')
+    pl.axis('off')
+    pl.imshow(im) 
+    pl.subplot(2,2,2)
+    pl.title('Red Channel at 1')
+    pl.axis('off')
+    pl.imshow(red)
+    pl.subplot(2,2,3)
+    pl.title('Green Channel at 2')
+    pl.axis('off')
+    pl.imshow(green)
+    pl.subplot(2,2,4)
+    pl.title('Blue Channel at 3')
+    pl.axis('off')
+    pl.imshow(blue)
+    
+    
 def demo_contour():
     """
     Show the contour and histogram of image.
@@ -102,7 +136,7 @@ def demo_interactive():
     Interactive label
     """    
     im = np.array(Image.open('./computer_vision/scenery.jpg'))
-    pl.imshow(im)   
+    pl.imshow(im)
     print('Please click 3 points')
     """Get mouse click input from GUI"""
     x = pl.ginput(3)
@@ -121,7 +155,8 @@ def demo_graymapping():
     """Square pixel value"""
     im_s = 255 * (im/ 255.0)**2
     """Show image"""
-    pl.figure('Gray space mapping')    
+    pl.figure('Gray space mapping')  
+    pl.gray()
     pl.subplot(2,2,1)
     pl.title('orignal gray image')
     pl.imshow(im)
