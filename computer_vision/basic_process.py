@@ -193,9 +193,11 @@ def demo_histeq():
     
     pl.figure('Histogram equalization')
     pl.subplot(1,2,1)
+    pl.gray()
     pl.imshow(im)
     pl.title('Orignal gray image')
     pl.subplot(1,2,2)
+    pl.gray()
     pl.imshow(im_n)
     pl.title('equalized image')
     pl.show()
