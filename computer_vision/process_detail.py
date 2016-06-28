@@ -32,10 +32,10 @@ def image_histo():
     """Establish a bins for histogram"""
     histogram = np.zeros((256,))
     img_size = gray_img.size
-    gray_img.shape = (1,img_size)
+    gray_img.shape = img_size
     """Calculating frequency for every gray level"""
     for i in range(img_size):
-        histogram[gray_img[0,i]] += 1
+        histogram[gray_img[i]] += 1
         
     """Establish a bins for probability density function"""
     pdf = np.zeros((256,))
@@ -54,13 +54,13 @@ def image_histo():
     interval = max_val - min_val
     
     """Map gray level in orignal image to equalized histogram"""
-    he_img.shape = (1,img_size)
+    he_img.shape = img_size
     for i in range(img_size):
-        he_img[0,i] = pdf[gray_img[0,i]] * interval + min_val
+        he_img[i] = pdf[gray_img[i]] * interval + min_val
     """Generate equalized histogram"""
     he_his = np.zeros((256,))
     for i in range(img_size):
-        he_his[he_img[0,i]] += 1
+        he_his[he_img[i]] += 1
         
     """Display result"""
     pl.figure('Histogram process')
@@ -86,4 +86,6 @@ def image_histo():
     pl.xticks([])
     pl.bar(range(256), he_his, color = (1,0,0))
     pl.show()
+    
+    
     
