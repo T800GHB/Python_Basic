@@ -201,11 +201,11 @@ def mean_filter(filter_w = 5, filter_h  = 5):
     pl.axis('off')
     pl.show()
         
-def filter_process(integral, shape, filter_h = 5, filter_w = 5):
+def filter_process(integral, filter_h = 5, filter_w = 5):
     '''Use integral to execute mean filter'''
     
-    height = shape[0]
-    width = shape[1]
+    height = integral.shape[0]
+    width = integral.shape[1]
     
     if ((filter_w < 2) or (filter_h < 2) or
         (height / 2 < filter_h) or (width / 2 < filter_w)):
@@ -224,7 +224,7 @@ def filter_process(integral, shape, filter_h = 5, filter_w = 5):
     
    
     '''Mean filter process for 4 corner'''
-    dst_img = np.empty(shape, dtype = int)
+    dst_img = np.empty(integral.shape, dtype = int)
     '''Up left corner'''    
     for i in range(filter_rh + 1):
         for j in range(filter_rw + 1):
@@ -314,8 +314,8 @@ def diff_filter():
             integral[i,j] = (src_img[i,j] + integral[i - 1,j] 
             + integral[i,j - 1] - integral[i - 1, j - 1])
     '''Get mean filter result'''
-    dst_big = filter_process(integral, src_img.shape, 9,9)
-    dst_small = filter_process(integral, src_img.shape,  3,3)
+    dst_big = filter_process(integral, 9,9)
+    dst_small = filter_process(integral, 3,3)
     '''Small minus big could reserve high frequency information'''
     multiscale = dst_small - dst_big
     '''Make all negitive element to be zeros'''
