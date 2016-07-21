@@ -98,18 +98,7 @@ def mean_filter(filter_w = 5, filter_h  = 5):
     if ((filter_w < 2) or (filter_h < 2) or
         (height / 2 < filter_h) or (width / 2 < filter_w)):
         print('Filter parameter set failure!' )
-        return
-    '''Set filter radius for two direction'''
-    if filter_w % 2 == 0:
-        filter_rw = int(filter_w / 2)
-    else:
-        filter_rw = int((filter_w - 1) / 2)
-    if filter_h % 2 == 0:
-        filter_rh = int(filter_h / 2)
-    else:
-        filter_rh = int((filter_h - 1) / 2)
-    '''Calculate filter size as pixel'''
-    filter_size = (filter_rw * 2 + 1) * (filter_rh * 2 + 1)
+        return    
     '''Estabilsh integral image for orignal image'''
     integral = np.empty(src_img.shape)
     integral[0,0] = src_img[0,0]
@@ -124,70 +113,8 @@ def mean_filter(filter_w = 5, filter_h  = 5):
         for j in range(1,width):
             integral[i,j] = (src_img[i,j] + integral[i - 1,j] 
             + integral[i,j - 1] - integral[i - 1, j - 1])
-    
-    '''Mean filter process for 4 corner'''
-    dst_img = np.empty(src_img.shape)
-    '''Up left corner'''    
-    for i in range(filter_rh + 1):
-        for j in range(filter_rw + 1):
-            dst_img[i,j] = (integral[i + filter_rh, j + filter_rw] 
-            / ((i + filter_rh + 1) * (j + filter_rw + 1)))
-    '''Up right corner'''
-    for i in range(filter_rh + 1):
-        for j in range(width - filter_rw - 1, width):
-            dst_img[i,j] = ((integral[i + filter_rh,width - 1]
-            - integral[i + filter_rh, j - filter_rw - 1])
-             / ((i + filter_rh + 1) * (width - j + filter_rw)))
-    '''Down left corner'''
-    for i in range(height - filter_rh - 1, height):
-        for j in range(filter_rw + 1):
-            dst_img[i,j] = ((integral[height - 1, j + filter_rw]
-            -integral[i - filter_rh - 1, j + filter_rw])
-            /((height - i + filter_rh) * (j + filter_rw + 1)))
-    '''Down right corner'''
-    for i in range(height - filter_rh - 1, height):
-        for j in range(width - filter_rw - 1, width):
-            dst_img[i,j] = ((integral[height- 1, width - 1] 
-            + integral[i - filter_rh - 1, j - filter_rw -1]
-            - integral[height - 1, j - filter_rw - 1]
-            - integral[i - filter_rh - 1, width - 1])
-            /((height - i + filter_rh) * (width -j + filter_rw)))
-    '''Left edge'''
-    for i in range(filter_rh + 1, height - filter_rh - 1):
-        for j in range(filter_rw + 1):
-            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
-            - integral[i - filter_rh - 1, j + filter_rw])
-            /((filter_rh * 2 + 1) * (j + filter_rw + 1)))
-    '''Right edge'''
-    for i in range(filter_rh + 1, height - filter_rh - 1):
-        for j in range(width - filter_rw - 1, width):
-            dst_img[i,j] = ((integral[i + filter_rh, width -1] 
-            + integral[i - filter_rh - 1, j - filter_rw - 1]
-            - integral[i - filter_rh - 1, width -1]
-            - integral[i + filter_rh, j - filter_rw -1])
-            /((filter_rh * 2 + 1) * (width - j + filter_rw)))
-    '''Up edge'''
-    for i in range(filter_rh + 1):
-        for j in range(filter_rw + 1, width - filter_rw -1):
-            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
-            - integral[i + filter_rh, j - filter_rw - 1])
-            /((filter_rw * 2 + 1) * (i + filter_rh + 1)))
-    '''Down edge'''
-    for i in range(height- filter_rh -1, height):
-        for j in range(filter_rw + 1, width - filter_rw -1):
-            dst_img[i,j] = ((integral[height -1, j + filter_rw]
-            + integral[i - filter_rh - 1, j - filter_rw - 1]
-            - integral[i - filter_rh - 1, j + filter_rw]
-            - integral[height - 1, j - filter_rw -1])
-            /((filter_rw * 2 + 1)*(height - i + filter_rh)))
-    '''Centeral part'''
-    for i in range(filter_rh + 1, height - filter_rh -1):
-        for j in range(filter_rw + 1, width - filter_rw -1):
-            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
-            + integral[i - filter_rh - 1, j - filter_rw - 1]
-            - integral[i - filter_rh - 1, j + filter_rw]
-            - integral[i + filter_rh, j - filter_rw -1])
-            / filter_size)
+    '''Mean filter process'''
+    dst_img = filter_process(integral, 9, 9)
     '''Display result'''
     pl.figure('Mean filter process')
     pl.gray()
