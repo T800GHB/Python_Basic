@@ -269,7 +269,7 @@ def diff_filter():
     pl.axis('off')
     pl.show()
     
-    class object_info(object):
+class object_info(object):
     def __init__(self, up = 10000, left = 10000, down = 0, right = 0, area = 0):
         '''constructer'''
         self.__up = up
