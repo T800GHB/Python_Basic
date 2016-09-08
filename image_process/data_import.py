@@ -29,9 +29,10 @@ def load_mnist(is_centered = 0):
         magic, numImages, rows, cols = st.unpack_from('>IIII', buf, index)
         train_image = np.zeros((numImages, rows, cols))
         index += st.calcsize('>IIII')
+        buffer_len = st.calcsize('>784B') 
         for i in range(numImages):
             train_image[i,:,:] = np.array(st.unpack_from('>784B', buf, index)).reshape(rows, cols)
-            index += st.calcsize('>784B')                
+            index += buffer_len                
         
     with open(train_label_filename, 'rb') as binlabel:
         buflabel = binlabel.read()
@@ -39,9 +40,10 @@ def load_mnist(is_centered = 0):
         lmagic, numLabels = st.unpack_from('>II',buflabel, label_index)
         label_index += st.calcsize('>II')
         train_label = np.zeros((numLabels,), dtype = np.uint8)
+        buffer_len = st.calcsize('>1B')
         for i in range(numLabels):
             train_label[i] = np.uint8(st.unpack_from('1B',buflabel, label_index))
-            label_index += st.calcsize('>1B')
+            label_index += buffer_len
     
     with open(test_image_filename, 'rb') as test_binfile:
         buf_test = test_binfile.read()
@@ -49,9 +51,10 @@ def load_mnist(is_centered = 0):
         t_magic, t_numImages, t_rows, t_cols = st.unpack_from('>IIII',buf_test, index_test)
         index_test += st.calcsize('>IIII')
         test_image = np.zeros((t_numImages, t_rows, t_cols))
+        buffer_len = st.calcsize('>784B')
         for i in range(t_numImages):
             test_image[i,:,:] = np.array(st.unpack_from('>784B', buf_test, index_test)).reshape(t_rows, t_cols)
-            index_test += st.calcsize('>784B')
+            index_test += buffer_len
     
     with open(test_label_filename, 'rb') as test_binlabel:
         buf_test_label = test_binlabel.read()
@@ -59,9 +62,10 @@ def load_mnist(is_centered = 0):
         lt_magic,lt_numLabels = st.unpack_from('>II', buf_test_label, index_label)
         index_label += st.calcsize('>II')
         test_label = np.zeros((lt_numLabels,), dtype = np.uint8)
+        buffer_len = st.calcsize('>1B') 
         for i in range(lt_numLabels):
             test_label[i] = np.uint8(st.unpack_from('1B', buf_test_label, index_label))
-            index_label += st.calcsize('>1B')        
+            index_label += buffer_len     
     
     #Calculate mean image for entire data set
     mean_image = np.zeros((rows, cols))
