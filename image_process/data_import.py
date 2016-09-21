@@ -9,9 +9,11 @@ import struct as st
 import pylab as pl
 import numpy as np
 import scipy as sp
+import os
+import scipy.misc as sm
 
-#is_centered 0 means centered data, 1 means orignal data stored in numpy array
-def load_mnist(is_centered = 0):    
+#is_centered not 0 means centered data, 1 means orignal data stored in numpy array
+def load_mnist(is_centered = 0, is_show = 0):    
 #==============================================================================
 #     This block of code load MNIST dataset into memory
 #==============================================================================
@@ -75,7 +77,7 @@ def load_mnist(is_centered = 0):
     mean_image /= numImages
     
     '''Zero mean process'''
-    if is_centered == 0:
+    if is_centered:
         train_image -= mean_image
         test_image -= mean_image
     '''
@@ -85,14 +87,63 @@ def load_mnist(is_centered = 0):
     >>>index = np.arange(numImages)
     >>>np.ramdom.shuffle(index)
     '''
-    
-    pl.figure('First try')
-    pl.gray()
-    pl.imshow(mean_image)
-    
-    sp.misc.imsave('mean_image.bmp', mean_image)
+    if is_show:
+        pl.figure('Mean image')
+        pl.gray()
+        pl.imshow(mean_image)        
+        sp.misc.imsave('mean_image.bmp', mean_image)
 
     
     return train_image, train_label, test_image, test_label, mean_image
+
+   
+def unfold_mnist():
+#==============================================================================
+#     This block of code will unfold mnist dataset, and store it to disk
+#      as image format. At same time each image will locate on floder named
+#     with its label, but name is random number
+#==============================================================================
+    #Import mnist dataset, this data will store in each numpy array
+    train_images, train_labels, test_images, test_labels, mean = load_mnist()
+    #Specify path of store image
+    root_path = './mnist_images//'
+    if not os.path.isdir(root_path):
+        os.mkdir(root_path)
     
+    train_path = root_path + 'train_images//'
+    if not os.path.isdir(train_path):
+        os.mkdir(train_path)
+        
+    test_path = root_path + 'test_images//'
+    if not os.path.isdir(test_path):
+        os.mkdir(test_path)
+        
+    '''Achive number of train and test image'''
+    train_num = train_labels.shape[0]
+    test_num = test_labels.shape[0]
     
+    #Images will store at different folder as their labels, so create floder firstly.
+    labels = np.unique(train_labels)
+    train_label_num = len(labels)
+    for i in range(train_label_num):
+        dst_path = train_path + str(labels[i])
+        if not os.path.isdir(dst_path):
+            os.mkdir(dst_path)
+    
+    labels = np.unique(test_labels)
+    test_label_num = len(labels)
+    for i in range(test_label_num):
+        dst_path = test_path + str(labels[i])
+        if not os.path.isdir(dst_path):
+            os.mkdir(dst_path)
+    
+    #Store image to floder as their label
+    for i in range(train_num):
+        label = train_labels[i]
+        dst_path = train_path + str(label)
+        sm.imsave(dst_path + '//' + str(i) + '.bmp', train_images[i,...])
+            
+    for i in range(test_num):
+        label = test_labels[i]
+        dst_path = test_path + str(label)
+        sm.imsave(dst_path + '//' + str(i) + '.bmp', test_images[i,...])
