@@ -12,7 +12,8 @@ import numpy as np
 from scipy.optimize import leastsq
 import pylab as pl
 from scipy import interpolate
-import weave
+from scipy import  misc
+#import weave
 import time
 
 def func(x, p):
@@ -127,3 +128,17 @@ def demo_Weave():
     sum(a)
     print('Python sum:', (time.clock() - start))
     
+def demo_image():
+    '''
+    misc model in scipy contain some method to operate on image, such as 
+    open, save, resize, show; and it will operate image as a numpy array.
+    '''
+    img = misc.imread('image_process/tire.bmp')     #img is a numpy array
+    '''Resize a image to a big one'''
+    re_img = misc.imresize(img, (600,600))
+    '''Rotate a image to another one'''
+    ro_img = misc.imrotate(re_img, 45)
+    '''Save this image as file'''
+    misc.imsave('test.bmp', ro_img)
+    '''Show a image without matplotlib'''
+    misc.imshow(ro_img)
