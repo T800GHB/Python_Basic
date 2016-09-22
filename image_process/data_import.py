@@ -13,7 +13,7 @@ import os
 import scipy.misc as sm
 
 #is_centered not 0 means centered data, 1 means orignal data stored in numpy array
-def load_mnist(is_centered = 0, is_show = 0):    
+def load_mnist(is_centered = False, is_show = False):    
 #==============================================================================
 #     This block of code load MNIST dataset into memory
 #==============================================================================
@@ -147,3 +147,58 @@ def unfold_mnist():
         label = test_labels[i]
         dst_path = test_path + str(label)
         sm.imsave(dst_path + '//' + str(i) + '.bmp', test_images[i,...])
+        
+        
+def gen_file_list(file_path):
+#==============================================================================
+#     This block of code will generate a file list that contain names of image
+#     and its label, at same time there will be an additional file created which
+#     list folder name and its label
+#==============================================================================
+    if len(file_path) == 0:
+        print('Please input folder path')
+    '''Setting image format that will be accepted'''
+    legal_format = ['.bmp','.jpg','.JEPG','.png','.tif']
+    label_mapping = file_path + '/label_word.txt'    
+    images_list = file_path + '/images_list.txt'    
+    '''Delete old file'''
+    if os.path.exists(label_mapping):
+        os.remove(label_mapping)   
+    if os.path.exists(images_list):
+        os.remove(images_list)
+    
+
+    '''List all directories'''
+    dir_list = [f for f in os.listdir(file_path) \
+                if os.path.isdir(os.path.join(file_path, f))]
+
+    '''Use a dict to store a relationship between floder name and label'''
+    label_map = {}
+    for i in range(len(dir_list)):
+        label_map[i] = dir_list[i]
+
+    '''Save mapping table to file'''
+    with open(label_mapping, 'w') as fh:
+        for i in range(len(dir_list)):
+            fh.write(str(i) + ' ' + label_map[i] + '\n')
+    
+    #==============================================================================
+    #     Save file list
+    #     1.Delete all folder in each image set;
+    #     2.List all file in each image set;
+    #     3.Wirte image and its relative path to file list.
+    #==============================================================================
+    for i in range(len(dir_list)):
+       sub_dir_list = [f for f in os.listdir(os.path.join(file_path, dir_list[i])) \
+                   if os.path.isdir(os.path.join(file_path, dir_list[i], f))]
+       for j in range(len(sub_dir_list)):
+           os.rmdir(os.path.join(file_path, dir_list[i], sub_dir_list[j])) 
+      
+    with open(images_list, 'w') as fh:
+       for i in range(len(dir_list)):
+           sub_file_path = os.path.join(file_path, label_map[i])
+           sub_file_list = [f for f in os.listdir(sub_file_path)]           
+           for j in range(len(sub_file_list)):
+               '''File filter'''
+               if os.path.splitext(sub_file_list[j])[1] in legal_format:
+                   fh.write(str(i) + ' ' + label_map[i] + '/' + sub_file_list[j] + '\n')
