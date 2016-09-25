@@ -149,11 +149,13 @@ def unfold_mnist():
         sm.imsave(dst_path + '//' + str(i) + '.bmp', test_images[i,...])
         
         
-def gen_file_list(file_path):
+def gen_file_list(file_path, path_head = True):
 #==============================================================================
 #     This block of code will generate a file list that contain names of image
 #     and its label, at same time there will be an additional file created which
 #     list folder name and its label
+#     path_head means every line in the list will assign image path first then
+#     label, vice versa.
 #==============================================================================
     if len(file_path) == 0:
         print('Please input folder path')
@@ -193,7 +195,12 @@ def gen_file_list(file_path):
                    if os.path.isdir(os.path.join(file_path, dir_list[i], f))]
        for j in range(len(sub_dir_list)):
            os.rmdir(os.path.join(file_path, dir_list[i], sub_dir_list[j])) 
-      
+           
+    if path_head:
+        fw = lambda x, y : label_map[x] + '/' + sub_file_list[y] + ' ' + str(x) + '\n'
+    else:
+        fw = lambda x, y : str(x) + ' ' + label_map[x] + '/' + sub_file_list[y] + '\n'
+    
     with open(images_list, 'w') as fh:
        for i in range(len(dir_list)):
            sub_file_path = os.path.join(file_path, label_map[i])
@@ -201,4 +208,4 @@ def gen_file_list(file_path):
            for j in range(len(sub_file_list)):
                '''File filter'''
                if os.path.splitext(sub_file_list[j])[1] in legal_format:
-                   fh.write(str(i) + ' ' + label_map[i] + '/' + sub_file_list[j] + '\n')
+                  fh.write(fw(i, j))
