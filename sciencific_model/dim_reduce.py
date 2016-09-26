@@ -159,7 +159,7 @@ def lda(accept_ratio = 0.95):
         
     #Calculate convariance matrix within class
     c_within = c_class.sum(axis = 0)
-    print('nima')
+    
     #Calculate eign-value and eign-vector
     V,D = nl.eig(nl.inv(c_within).dot(c_between))
     #The result is complex number, real number is needed.
@@ -176,10 +176,10 @@ def lda(accept_ratio = 0.95):
         if accept_ratio < ratio:
             max_index = i
             break
-    print('haha')
+    
     #According to ratio, select most important eign-vector
     project_basis = eignvector[:,sort_index[:max_index + 1]]
     #According to new basis, project orignal feature to lower dimensional feature
     lda_set = (project_basis.T).dot(feature_set)
-    print('fuck')
+    
     return lda_set
