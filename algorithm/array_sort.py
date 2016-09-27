@@ -55,8 +55,24 @@ def merge_sort(data):
     pass
 
 def select_sort(data):
-    pass
-
+    '''
+    Select sort will find smallest one in the rest of array;
+    exchange location between smallest one and rest of head.
+    '''
+    count = len(data)
+    for i in range(count):
+        min_index = i
+        for j in range(i+1, count):
+            if data[j] < data[min_index]:
+                min_index = j
+        #If the smallest has found, take exchange.
+        if min_index != i:
+            temp = data[i]
+            data[i] = data[min_index]
+            data[min_index] = temp
+    
+    return data            
+    
 def radix_sort(data):
     pass
 
@@ -101,3 +117,5 @@ def demo_sort():
     print('Bubble result\n',bubble_result)
     shell_result = shell_sort(data)
     print('Shell result\n',shell_result)
+    select_result = select_sort(data)
+    print('Select result\n',select_result)
