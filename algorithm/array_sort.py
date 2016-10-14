@@ -78,8 +78,52 @@ def quick_sort(data, low, high):
     
     return data
 
+def adjust_heap(data, i, size):    
+    #The location of i is father, so the children of i is below.    
+    lchild = 2 * i + 1
+    rchild = 2 * i + 2
+    '''
+    Assume the location i is max value among father and its children.
+    So, if the max value is not father, switch i and max location.
+    Always keep location of father max vaule in its subset. 
+    '''
+    max = i
+    #Keep location i in correct range, and find max value
+    if i < size / 2:
+        if lchild < size and data[lchild] > data[max]:
+            max = lchild
+
+        if rchild < size and data[rchild] > data[max]:
+            max = rchild
+
+        if max != i:
+            data[max], data[i] = data[i], data[max]
+            #Struct has changed, adjust struct of father's children
+            adjust_heap(data, max, size)
+    
+def build_heap(data, size):
+    '''    
+    Adjust order of array from leaf to root, then the root is maximun of array.
+    From size / 2 + 1 to end are leaves.
+    So, pay attention to the reverse order.
+    '''
+    for i in range(0, int(size/2))[::-1]:
+        adjust_heap(data, i, size)
+    
 def heap_sort(data):
-    pass
+    
+    size = len(data)
+    build_heap(data, size)
+    '''
+    Output the ascent array.
+    Pay attention to reverse order, put the maximum at last location,
+    then adjust struct of rest part.
+    '''
+    for i in range(0, size)[::-1]:
+        data[0], data[i] = data[i], data[0]
+        adjust_heap(data, 0, i)
+    
+    return data
 
 def merge(left, right):
     #Index
@@ -134,7 +178,7 @@ def select_sort(data):
     
     return data            
     
-def radix_sort(lists, radix = 10):
+def radix_sort(data, radix = 10):
     '''
     This method will sort array without comparsion.
     Just like hash, sort by empty and ordered array.
@@ -144,25 +188,25 @@ def radix_sort(lists, radix = 10):
     But, this algorithm just support integer
     '''
     #Calculate max radix of this choas array.
-    k = int(math.ceil(math.log(max(lists), radix)))
+    k = int(math.ceil(math.log(max(data), radix)))
     #According to the basic radix, allocate buckets(container).
     bucket = [[] for i in range(radix)]   
     
     #From low radix to high radix, assign to each bucket.
     for i in range(1, k+1):
         #Calculate the value of specific radix, put the elements into buckets.
-        for j in lists:            
+        for j in data:            
             bucket[int(j/(radix**(i-1)) % (radix**i))].append(j)
         #Clear the orignal data   
-        del lists[:]
+        del data[:]
         #Receive the ordered elements with specific radix
         for z in bucket:
-            #Now, lists is ordered with specific radix            
-            lists += z
+            #Now, data is ordered with specific radix            
+            data += z
             #Clear bucket for reuse.
             del z[:]
 
-    return lists
+    return data
 
 def shell_sort(data):
     '''
@@ -247,4 +291,6 @@ def demo_sort():
     count_result = counting_sort(data)
     print('Counting result\n', count_result)
     merge_result = np.array(merge_sort(data))
-    print('Merge result\n',merge_result)        
+    print('Merge result\n',merge_result)       
+    heap_result = heap_sort(data)
+    print('Heap result\n', heap_result)
