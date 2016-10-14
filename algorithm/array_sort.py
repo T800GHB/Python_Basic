@@ -164,6 +164,39 @@ def shell_sort(data):
         
     return data   
 
+def counting_sort(data):
+    '''
+    This is a kind of bucket sort. 
+    Put the choas elements into ordered array.
+    The procedure of counting consider the repeat elements.
+    This method will cost so much memory, so it will get best preformence 
+    for sorting integer from 0 to 100.
+    '''
+    d_size = len(data)
+    #This is a ordered array
+    counter = np.zeros(d_size, dtype = np.int)
+    result = np.zeros(d_size, dtype = np.int)
+    #Counting the frequency of each element.
+    for i in range(d_size):
+        counter[data[i]] += 1
+    #Calculate the index of different element
+    for i in range(1, d_size):
+        counter[i] += counter[i - 1]
+    #Forward or backward could work.
+    #for i in range(d_size-1, -1, -1):
+    for i in range(d_size):
+        element = data[i]  
+        #Get the index, this location is the lastest of all can save this value.    
+        index = counter[element] - 1     
+        result[index] = element
+        '''
+        Adjust the index of this value, 
+        capacity in result array of this value will reduce.
+        '''
+        counter[element] -= 1
+    
+    return result
+
 def demo_sort():    
     data = np.arange(30)
     np.random.shuffle(data)
@@ -180,4 +213,6 @@ def demo_sort():
     print('Quick result\n',quick_result)
     radix_result = radix_sort(list(data))
     print('Radix result\n',np.array(radix_result))
+    count_result = counting_sort(data)
+    print('Counting result\n', count_result)
     
