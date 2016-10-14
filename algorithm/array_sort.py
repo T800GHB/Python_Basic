@@ -45,8 +45,38 @@ def bubble_srot(data):
                 data[j] = key
     return data
 
-def quick_sort(data):
-    pass
+def quick_sort(data, low, high):
+    '''
+    Quick Sort is a fast and basic algorithm.
+    This algorithm will always seperate array into two parts ,
+    according to key value.
+    If the array can't seperate any more, all procedure done.
+    '''
+    #Stop condition    
+    if high <= low:
+        return
+    i = low
+    j = high
+    #There are many methods to set key, here is samplest one.
+    key = data[low]
+    '''    
+    Seperate array into two parts, left part are less than key, right part are
+    great than key.
+    '''
+    while i < j:
+        while i < j and key <= data[j]:
+            j -= 1         
+        data[i] = data[j]   #Switch location between key and less one     
+        while i < j and data[i] <= key:
+            i += 1
+        data[j] = data[i]   #Switch location between key and great one
+    
+    data[i] = key       #Put the key to centeral position.
+ 
+    quick_sort(data, low, i-1)
+    quick_sort(data, i+1, high)    
+    
+    return data
 
 def heap_sort(data):
     pass
@@ -119,3 +149,6 @@ def demo_sort():
     print('Shell result\n',shell_result)
     select_result = select_sort(data)
     print('Select result\n',select_result)
+    quick_result = quick_sort(data, 0, len(data) - 1)
+    print('Quick result\n',quick_result)
+    
