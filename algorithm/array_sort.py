@@ -9,7 +9,7 @@ I just want to discribe theory, only support with 1 dimensional array.
 """
 
 import numpy as np
-
+import math
 
 
 def insert_sort(data):
@@ -103,8 +103,35 @@ def select_sort(data):
     
     return data            
     
-def radix_sort(data):
-    pass
+def radix_sort(lists, radix = 10):
+    '''
+    This method will sort array without comparsion.
+    Just like hash, sort by empty and ordered array.
+    Put choas elements into container, according to the 
+    current radix(radix of decimal is 10)
+    From low radix to high radix.
+    But, this algorithm just support integer
+    '''
+    #Calculate max radix of this choas array.
+    k = int(math.ceil(math.log(max(lists), radix)))
+    #According to the basic radix, allocate buckets(container).
+    bucket = [[] for i in range(radix)]   
+    
+    #From low radix to high radix, assign to each bucket.
+    for i in range(1, k+1):
+        #Calculate the value of specific radix, put the elements into buckets.
+        for j in lists:            
+            bucket[int(j/(radix**(i-1)) % (radix**i))].append(j)
+        #Clear the orignal data   
+        del lists[:]
+        #Receive the ordered elements with specific radix
+        for z in bucket:
+            #Now, lists is ordered with specific radix            
+            lists += z
+            #Clear bucket for reuse.
+            del z[:]
+
+    return lists
 
 def shell_sort(data):
     '''
@@ -151,4 +178,6 @@ def demo_sort():
     print('Select result\n',select_result)
     quick_result = quick_sort(data, 0, len(data) - 1)
     print('Quick result\n',quick_result)
+    radix_result = radix_sort(list(data))
+    print('Radix result\n',np.array(radix_result))
     
