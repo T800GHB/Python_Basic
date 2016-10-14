@@ -81,8 +81,39 @@ def quick_sort(data, low, high):
 def heap_sort(data):
     pass
 
+def merge(left, right):
+    #Index
+    i = 0
+    j = 0
+    #Temperory container
+    result = []       
+    #According to the order, descent or ascent, one by one merger.     
+    while i < len(left) and j < len(right):
+        if left[i] < right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+    #Append rest part of array onto result.
+    result += list(left[i:])
+    result += list(right[j:])
+    return result            
+    
 def merge_sort(data):
-    pass
+    '''
+    The idea of Merge sort is  divide and conquer.
+    Split array into smallest one, 1 element, and merge those parts.
+    '''
+    #Stop condition
+    if len(data) <= 1:
+        return data
+    #Split into two parts and recursion 
+    middle = int(len(data) / 2)    
+    left = merge_sort(data[0:middle])
+    right = merge_sort(data[middle: len(data)])
+    #Result is a list, not a numpy array.
+    return merge(left,right)    
 
 def select_sort(data):
     '''
@@ -215,4 +246,5 @@ def demo_sort():
     print('Radix result\n',np.array(radix_result))
     count_result = counting_sort(data)
     print('Counting result\n', count_result)
-    
+    merge_result = np.array(merge_sort(data))
+    print('Merge result\n',merge_result)        
