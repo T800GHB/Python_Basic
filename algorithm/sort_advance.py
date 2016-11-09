@@ -79,9 +79,34 @@ def adjust_heap_max(data, i, size):
                 max_idx = right   
                 
 
+def adjust_heap_min(data, i, size):   
+    
+    if i < size / 2:
+        min_idx = i
+        loc = i
+        while True:
+            left = 2 * loc + 1
+            right = 2 * loc + 2
+            
+            if left < size and data[min_idx] > data[left]:
+                min_idx = left
+            if right < size and data[min_idx] > data[right]:
+                min_idx = right 
+            
+            if min_idx != loc:
+                data[loc], data[min_idx] = data[min_idx], data[loc]            
+                loc = min_idx
+            else:
+                break
+
+
 def build_heap_max(data, size):    
     for i in range(int(size / 2))[::-1]:
         adjust_heap_max(data, i, size)
+
+def build_heap_min(data, size):
+    for i in range(int(size / 2))[::-1]:
+        adjust_heap_min(data, i, size)
     
             
 def heap_sort(data):
@@ -95,6 +120,22 @@ def heap_sort(data):
         adjust_heap_max(data, 0, i)
     
     return data
+    
+def topk(data, k):
+    '''
+    Find top-k big element
+    '''
+    num = len(data)
+    top = data[:k]
+    build_heap_min(top, k)
+    
+    for i in range(k, num):
+        if top[0] < data[i]:
+            top[0] = data[i]
+            
+            adjust_heap_min(top, 0, k)
+            
+    return top
 
             
 def demo():
@@ -104,5 +145,5 @@ def demo():
     print('Quick sort result\n', quick_result)
     heap_result = heap_sort(data)
     print('Heap sort result\n', heap_result)
-    
-    
+    top_result = topk(data, 5)
+    print('Top result\n', top_result)
