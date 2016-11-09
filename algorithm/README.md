@@ -3,4 +3,5 @@ Now, algorithms are:
 1.unique
 Reserve unique elements onto orignal array. 
 2.sort
-8 kinds of sort algorithm
+Many kinds of sort algorithm
+3.sort with modification
