@@ -72,6 +72,15 @@ def run_demo():
         os.path.isfile('filename') to confirm.
         """
         f6.write('Hello again')
+    
+    str_list = ['hello','new','baby']    
+    with open('filepath/filename.txt', 'w') as f7:
+        '''
+        Write a list of string into a file.
+        Writelines can make sure every string in list as one line in file
+        '''
+        f7.writelines(str_list)
+        
         
         
         
