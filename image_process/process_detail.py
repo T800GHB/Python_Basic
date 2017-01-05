@@ -87,19 +87,34 @@ def image_histo():
     pl.bar(range(256), he_his, color = (1,0,0))
     pl.show()
     
-def mean_filter(filter_w = 5, filter_h  = 5):
+def mean_filter(filter_h = 5, filter_w  = 5):
     """
     This block code will demostrate how to use integral image to 
     execute mean filter operation
     """
     src_img = np.array(Image.open('./image_process/scenery.jpg').convert('L'))
+    
+    '''Calculate integral image'''
+    integral = integral_image(src_img)
+    '''Mean filter process'''
+    dst_img = filter_process(integral, filter_h, filter_w)
+    '''Display result'''
+    pl.figure('Mean filter process')
+    pl.gray()
+    pl.subplot(1,2,1)
+    pl.title('Orignal image')
+    pl.imshow(src_img)
+    pl.axis('off')
+    pl.subplot(1,2,2)
+    pl.title('Processed image')
+    pl.imshow(dst_img)
+    pl.axis('off')
+    pl.show()
+    
+def integral_image(src_img):    
+    '''Estabilsh integral image for orignal image'''
     height = src_img.shape[0]
     width = src_img.shape[1]
-    if ((filter_w < 2) or (filter_h < 2) or
-        (height / 2 < filter_h) or (width / 2 < filter_w)):
-        print('Filter parameter set failure!' )
-        return    
-    '''Estabilsh integral image for orignal image'''
     integral = np.empty(src_img.shape)
     integral[0,0] = src_img[0,0]
     '''Initialize first row of integral image'''
@@ -113,20 +128,8 @@ def mean_filter(filter_w = 5, filter_h  = 5):
         for j in range(1,width):
             integral[i,j] = (src_img[i,j] + integral[i - 1,j] 
             + integral[i,j - 1] - integral[i - 1, j - 1])
-    '''Mean filter process'''
-    dst_img = filter_process(integral, 9, 9)
-    '''Display result'''
-    pl.figure('Mean filter process')
-    pl.gray()
-    pl.subplot(1,2,1)
-    pl.title('Orignal image')
-    pl.imshow(src_img)
-    pl.axis('off')
-    pl.subplot(1,2,2)
-    pl.title('Processed image')
-    pl.imshow(dst_img)
-    pl.axis('off')
-    pl.show()
+    
+    return integral
         
 def filter_process(integral, filter_h = 5, filter_w = 5):
     '''Use integral to execute mean filter'''
@@ -136,7 +139,7 @@ def filter_process(integral, filter_h = 5, filter_w = 5):
     
     if ((filter_w < 2) or (filter_h < 2) or
         (height / 2 < filter_h) or (width / 2 < filter_w)):
-        print('Filter parameter set failure!' )
+        raise ValueError('Filter parameter set failure!' )
     '''Set filter radius for two direction'''
     if filter_w % 2 == 0:
         filter_rw = int(filter_w / 2)
@@ -216,33 +219,19 @@ def filter_process(integral, filter_h = 5, filter_w = 5):
             
     return dst_img
     
-def diff_filter():
+def diff_filter(filter_bh = 9, filter_bw = 9, filter_sh = 3, filter_sw = 3):
     '''
     Multiscale filter by mean filter
     Get results of image which processed by two different size mean filter.
     Then, use filtered image of small size minus big one procedure final reslut.
     '''
-    src_img = np.array(Image.open('./image_process/tire.bmp').convert('L'))
-    height = src_img.shape[0]
-    width = src_img.shape[1]
+    src_img = np.array(Image.open('./image_process/tire.bmp').convert('L'))         
     
-    '''Estabilsh integral image for orignal image'''
-    integral = np.empty(src_img.shape, dtype = int)
-    integral[0,0] = src_img[0,0]
-    '''Initialize first row of integral image'''
-    for i in range(1,width):
-        integral[0,i] = integral[0, i - 1] + src_img[0,i]
-    '''Initialize first col of integral image'''
-    for i in range(1,height):
-        integral[i,0] = integral[i - 1,0] + src_img[i,0]
-    '''Initialize rest part of integral image'''
-    for i in range(1,height):
-        for j in range(1,width):
-            integral[i,j] = (src_img[i,j] + integral[i - 1,j] 
-            + integral[i,j - 1] - integral[i - 1, j - 1])
+    '''Calculate integral image'''
+    integral = integral_image(src_img)
     '''Get mean filter result'''
-    dst_big = filter_process(integral, 9,9)
-    dst_small = filter_process(integral, 3,3)
+    dst_big = filter_process(integral, filter_bh,filter_bw)
+    dst_small = filter_process(integral, filter_sh,filter_sw)
     '''Small minus big could reserve high frequency information'''
     multiscale = dst_small - dst_big
     '''Make all negitive element to be zeros'''
