@@ -111,6 +111,49 @@ def mean_filter(filter_h = 5, filter_w  = 5):
     pl.axis('off')
     pl.show()
     
+def filter_centerout(filter_bh = 9, filter_bw = 9, filter_sh = 3, filter_sw = 3):
+    """
+    This block code will demostrate how to process a  image by mean filter
+    and multiscale filter without centeral part.
+    """
+    src_img = np.array(Image.open('./image_process/scenery.jpg').convert('L'))
+    
+    '''Calculate integral image'''
+    integral = integral_image(src_img)
+    
+    img_data_diff = src_img.copy()
+    '''Mean filter process'''
+    filter_result = filter_process_centerout(img_data_diff, integral, filter_sh, filter_sw,
+                        up = 250, down = 500, left = 250, right = 600)
+    
+    filter_result_small = filter_result.copy()
+    diff_result = diff_process_centerout(filter_result, integral, filter_bh,filter_bw,
+                        up = 250, down = 500, left = 250, right = 600)
+    
+    img_data_alone = src_img.copy()
+    filter_result_big = filter_process_centerout(img_data_alone, integral, filter_bh, filter_bw,
+                        up = 250, down = 500, left = 250, right = 600)
+    '''Display result'''
+    pl.figure('Center out filter process')
+    pl.gray()
+    pl.subplot(2,2,1)
+    pl.title('Orignal image')
+    pl.imshow(src_img)  
+    pl.axis('off')
+    pl.subplot(2,2,2)
+    pl.title('Multiscale filter process')
+    pl.imshow(diff_result)
+    pl.axis('off')
+    pl.subplot(2,2,3)
+    pl.title('Small mean filter result')
+    pl.imshow(filter_result_small)
+    pl.axis('off')
+    pl.subplot(2,2,4)
+    pl.title('Big mean filter result')
+    pl.imshow(filter_result_big)
+    pl.axis('off')
+    pl.show()
+    
 def integral_image(src_img):    
     '''Estabilsh integral image for orignal image'''
     height = src_img.shape[0]
@@ -154,7 +197,7 @@ def filter_process(integral, filter_h = 5, filter_w = 5):
     
    
     '''Mean filter process for 4 corner'''
-    dst_img = np.empty(integral.shape, dtype = int)
+    dst_img = np.empty(integral.shape, dtype = np.int)
     '''Up left corner'''    
     for i in range(filter_rh + 1):
         for j in range(filter_rw + 1):
@@ -219,6 +262,544 @@ def filter_process(integral, filter_h = 5, filter_w = 5):
             
     return dst_img
     
+def filter_process_centerout(dst_img, integral, filter_h = 5, filter_w = 5,
+                             up = 250, down = 500, left = 250, right = 600):
+    '''Use integral to execute mean filter without center part'''
+    height = integral.shape[0]
+    width = integral.shape[1]
+    
+    if ((filter_w < 2) or (filter_h < 2) or
+        (height / 2 < filter_h) or (width / 2 < filter_w) or
+        (up < filter_h) or (left < filter_w) or
+        (height - down < filter_h) or (width - right < filter_w)):
+        raise ValueError('Filter parameter set failure!' )
+    '''Set filter radius for two direction'''
+    if filter_w % 2 == 0:
+        filter_rw = int(filter_w / 2)
+    else:
+        filter_rw = int((filter_w - 1) / 2)
+    if filter_h % 2 == 0:
+        filter_rh = int(filter_h / 2)
+    else:
+        filter_rh = int((filter_h - 1) / 2)
+    '''Calculate filter size as pixel'''
+    filter_size = (filter_rw * 2 + 1) * (filter_rh * 2 + 1)
+    
+   
+    '''Mean filter process for 4 corner'''
+    '''Up left corner'''    
+    for i in range(filter_rh + 1):
+        for j in range(filter_rw + 1):
+            dst_img[i,j] = (integral[i + filter_rh, j + filter_rw] 
+            / ((i + filter_rh + 1) * (j + filter_rw + 1)))
+    '''Up right corner'''
+    for i in range(filter_rh + 1):
+        for j in range(width - filter_rw - 1, width):
+            dst_img[i,j] = ((integral[i + filter_rh,width - 1]
+            - integral[i + filter_rh, j - filter_rw - 1])
+             / ((i + filter_rh + 1) * (width - j + filter_rw)))
+    '''Down left corner'''
+    for i in range(height - filter_rh - 1, height):
+        for j in range(filter_rw + 1):
+            dst_img[i,j] = ((integral[height - 1, j + filter_rw]
+            -integral[i - filter_rh - 1, j + filter_rw])
+            /((height - i + filter_rh) * (j + filter_rw + 1)))
+    '''Down right corner'''
+    for i in range(height - filter_rh - 1, height):
+        for j in range(width - filter_rw - 1, width):
+            dst_img[i,j] = ((integral[height- 1, width - 1] 
+            + integral[i - filter_rh - 1, j - filter_rw -1]
+            - integral[height - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, width - 1])
+            /((height - i + filter_rh) * (width -j + filter_rw)))
+    '''Left edge'''
+    for i in range(filter_rh + 1, height - filter_rh - 1):
+        for j in range(filter_rw + 1):
+            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
+            - integral[i - filter_rh - 1, j + filter_rw])
+            /((filter_rh * 2 + 1) * (j + filter_rw + 1)))
+    '''Right edge'''
+    for i in range(filter_rh + 1, height - filter_rh - 1):
+        for j in range(width - filter_rw - 1, width):
+            dst_img[i,j] = ((integral[i + filter_rh, width -1] 
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, width -1]
+            - integral[i + filter_rh, j - filter_rw -1])
+            /((filter_rh * 2 + 1) * (width - j + filter_rw)))
+    '''Up edge'''
+    for i in range(filter_rh + 1):
+        for j in range(filter_rw + 1, width - filter_rw -1):
+            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw - 1])
+            /((filter_rw * 2 + 1) * (i + filter_rh + 1)))
+    '''Down edge'''
+    for i in range(height- filter_rh -1, height):
+        for j in range(filter_rw + 1, width - filter_rw -1):
+            dst_img[i,j] = ((integral[height -1, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[height - 1, j - filter_rw -1])
+            /((filter_rw * 2 + 1)*(height - i + filter_rh)))
+    '''Process big block use full filter'''
+    '''Up block'''
+    for i in range(filter_rh + 1, up - filter_rh + 1):
+        for j in range(filter_rw + 1, width - filter_rw - 1):
+            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+    '''Left an right block'''
+    for i in range(up - filter_rh + 1, down + filter_rh):
+        for j in range(filter_rw + 1, left - filter_rw + 1):
+            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+        for j in range(right + filter_rw, width - filter_rw - 1):
+            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+    '''Down block'''
+    for i in range(down + filter_rh, height - filter_rh - 1):
+        for j in range(filter_rw + 1, width - filter_rw - 1):
+            dst_img[i,j] = ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+    '''Process cross boundary with invalid region'''
+    '''Up left corner'''
+    for i in range(up - filter_rh + 1, up + 1):
+        for j in range(left - filter_rw + 1, left + filter_rw + 1):
+            diff_val = (integral[i - filter_rh - 1, j - filter_rw - 1]
+                         - integral[i - filter_rh - 1, j + filter_rw]
+                         - integral[i + filter_rh, j - filter_rw - 1]
+                         - integral[up, left]
+                         + integral[i + filter_rh, left]
+                         + integral[up, j + filter_rw])
+               
+            area = filter_size - (i + filter_rh - up) * (j + filter_rw - left)
+            dst_img[i,j] = diff_val / area
+    for i in range(up + 1, up + filter_rh + 1):
+        for j in range(left - filter_rw + 1, left + 1):
+            diff_val = (integral[i - filter_rh - 1, j - filter_rw - 1]
+                         - integral[i - filter_rh - 1, j + filter_rw]
+                         - integral[i + filter_rh, j - filter_rw - 1]
+                         - integral[up, left]
+                         + integral[i + filter_rh, left]
+                         + integral[up, j + filter_rw])
+            
+            area = filter_size - (i + filter_rh - up) * (j + filter_rw - left)
+            dst_img[i,j] = diff_val / area
+    '''Up edge'''
+    for i in range(up - filter_rh + 1, up + 1):
+        for j in range(left + filter_rw + 1, right - filter_rw):
+            sum_big = (integral[up, j + filter_rw]
+                       + integral[i - filter_rh - 1, j - filter_rw - 1]
+                       - integral[i - filter_rh - 1, j + filter_rw]
+                       - integral[up , j - filter_rw - 1])
+            
+            area = (up - i + filter_rh + 1) * filter_w
+            dst_img[i,j] = sum_big / area
+    '''Up right corner'''
+    for i in range(up - filter_rh + 1, up + 1):
+        for j in range(right - filter_rw, right + filter_rw):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, right - 1]
+                        - integral[up, j - filter_rw - 1]
+                        + integral[up, right - 1])
+            area = filter_size - (i + filter_rh - up) * (right - j + filter_rw)
+            dst_img[i,j] = diff_val / area
+    for i in range(up, up + filter_rh + 1):
+        for j in range(right, right + filter_rw):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, right - 1]
+                        - integral[up, j - filter_rw - 1]
+                        + integral[up, right - 1])
+            
+            area = filter_size - (i + filter_rh - up) * (right - j + filter_rw)
+            dst_img[i,j] = diff_val / area
+    '''Right edge'''
+    for i in range(up + filter_rh + 1, down - filter_rh):
+        for j in range(right, right + filter_rw):
+            sum_big = (integral[i + filter_rh, j + filter_rw]
+                       + integral[i - filter_rh - 1, right - 1]
+                       - integral[i - filter_rh - 1, j + filter_rw]
+                       - integral[i + filter_rh, right - 1])
+            
+            area = filter_h * (j + filter_rw - right + 1)
+            dst_img[i,j] = sum_big / area
+    '''Down right corner'''
+    for i in range(down - filter_rh, down + filter_rh):
+        for j in range(right, right + filter_rw):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, right - 1]
+                        + integral[down - 1, j - filter_rw - 1]
+                        + integral[i - filter_rh - 1, right -1])
+            
+            area = filter_size - (down - i + filter_rh) * (right - j + filter_rw)
+            dst_img[i,j] = diff_val / area
+    for i in range(down, down + filter_rh):
+        for j in range(right - filter_rw, right):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, right - 1]
+                        + integral[down - 1, j - filter_rw - 1]
+                        + integral[i - filter_rh - 1, right -1])
+            
+            area = filter_size - (down - i + filter_rh) * (right - j + filter_rw)
+            dst_img[i,j] = diff_val / area
+    '''Down edge'''
+    for i in range(down, down + filter_rh):
+        for j in range(left + filter_rw + 1, right - filter_rw):
+            sum_big = (integral[i + filter_rh, j + filter_rw]
+                       + integral[down - 1, j - filter_rw -1]
+                       - integral[down - 1, j + filter_rw]
+                       - integral[i + filter_rh, j - filter_rw - 1])
+            
+            area = (i + filter_rh - down + 1) * filter_w
+            dst_img[i,j] = sum_big / area
+    '''Down left corner'''
+    for i in range(down, down + filter_rh):
+        for j in range(left - filter_rw + 1, left + filter_rw + 1):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, j + filter_rw]
+                        - integral[i - filter_rh - 1, left]
+                        + integral[down - 1, left])
+            
+            area = filter_size - (down - i + filter_rh) * (j + filter_rw - left)
+            dst_img[i,j] = diff_val / area
+    for i in range(down - filter_rh, down):
+        for j in range(left - filter_rw + 1, left + 1):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, j + filter_rw]
+                        - integral[i - filter_rh - 1, left]
+                        + integral[down - 1, left])
+            
+            area = filter_size - (down - i + filter_rh) *(j + filter_rw - left)
+            dst_img[i,j] = diff_val / area
+    '''Left edge'''
+    for i in range(up + filter_rh + 1, down - filter_rh):
+        for j in range(left - filter_rw + 1, left + 1):
+            sum_big = (integral[i + filter_rh, left]
+                       + integral[i - filter_rh - 1, j - filter_rw - 1]
+                       - integral[i - filter_rh - 1, left]
+                       - integral[i + filter_rh, j - filter_rw - 1])
+            
+            area = filter_h * (left - j + filter_rw + 1)
+            dst_img[i,j] = sum_big / area
+    
+    return dst_img
+
+def diff_process_centerout(dst_img, integral, filter_h = 5, filter_w = 5,
+                             up = 250, down = 500, left = 250, right = 600):
+    '''Use integral to execute mean filter without center part'''
+    height = integral.shape[0]
+    width = integral.shape[1]
+    
+    if ((filter_w < 2) or (filter_h < 2) or
+        (height / 2 < filter_h) or (width / 2 < filter_w) or
+        (up < filter_h) or (left < filter_w) or
+        (height - down < filter_h) or (width - right < filter_w)):
+        raise ValueError('Filter parameter set failure!' )
+    '''Set filter radius for two direction'''
+    if filter_w % 2 == 0:
+        filter_rw = int(filter_w / 2)
+    else:
+        filter_rw = int((filter_w - 1) / 2)
+    if filter_h % 2 == 0:
+        filter_rh = int(filter_h / 2)
+    else:
+        filter_rh = int((filter_h - 1) / 2)
+    '''Calculate filter size as pixel'''
+    filter_size = (filter_rw * 2 + 1) * (filter_rh * 2 + 1)
+    
+   
+    '''Mean filter process for 4 corner'''
+    dst_img = np.array(dst_img, dtype = np.int)
+    '''Up left corner'''    
+    for i in range(filter_rh + 1):
+        for j in range(filter_rw + 1):
+            dst_img[i,j] -= (integral[i + filter_rh, j + filter_rw] 
+            / ((i + filter_rh + 1) * (j + filter_rw + 1)))
+            
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Up right corner'''
+    for i in range(filter_rh + 1):
+        for j in range(width - filter_rw - 1, width):
+            dst_img[i,j] -= ((integral[i + filter_rh,width - 1]
+            - integral[i + filter_rh, j - filter_rw - 1])
+             / ((i + filter_rh + 1) * (width - j + filter_rw)))
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Down left corner'''
+    for i in range(height - filter_rh - 1, height):
+        for j in range(filter_rw + 1):
+            dst_img[i,j] -= ((integral[height - 1, j + filter_rw]
+            -integral[i - filter_rh - 1, j + filter_rw])
+            /((height - i + filter_rh) * (j + filter_rw + 1)))
+            
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Down right corner'''
+    for i in range(height - filter_rh - 1, height):
+        for j in range(width - filter_rw - 1, width):
+            dst_img[i,j] -= ((integral[height- 1, width - 1] 
+            + integral[i - filter_rh - 1, j - filter_rw -1]
+            - integral[height - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, width - 1])
+            /((height - i + filter_rh) * (width -j + filter_rw)))
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Left edge'''
+    for i in range(filter_rh + 1, height - filter_rh - 1):
+        for j in range(filter_rw + 1):
+            dst_img[i,j] -= ((integral[i + filter_rh, j + filter_rw]
+            - integral[i - filter_rh - 1, j + filter_rw])
+            /((filter_rh * 2 + 1) * (j + filter_rw + 1)))
+            
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Right edge'''
+    for i in range(filter_rh + 1, height - filter_rh - 1):
+        for j in range(width - filter_rw - 1, width):
+            dst_img[i,j] -= ((integral[i + filter_rh, width -1] 
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, width -1]
+            - integral[i + filter_rh, j - filter_rw -1])
+            /((filter_rh * 2 + 1) * (width - j + filter_rw)))
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Up edge'''
+    for i in range(filter_rh + 1):
+        for j in range(filter_rw + 1, width - filter_rw -1):
+            dst_img[i,j] -= ((integral[i + filter_rh, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw - 1])
+            /((filter_rw * 2 + 1) * (i + filter_rh + 1)))
+            
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Down edge'''
+    for i in range(height- filter_rh -1, height):
+        for j in range(filter_rw + 1, width - filter_rw -1):
+            dst_img[i,j] -= ((integral[height -1, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[height - 1, j - filter_rw -1])
+            /((filter_rw * 2 + 1)*(height - i + filter_rh)))
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Process big block use full filter'''
+    '''Up block'''
+    for i in range(filter_rh + 1, up - filter_rh + 1):
+        for j in range(filter_rw + 1, width - filter_rw - 1):
+            dst_img[i,j] -= ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Left an right block'''
+    for i in range(up - filter_rh + 1, down + filter_rh):
+        for j in range(filter_rw + 1, left - filter_rw + 1):
+            dst_img[i,j] -= ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+        for j in range(right + filter_rw, width - filter_rw - 1):
+            dst_img[i,j] -= ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Down block'''
+    for i in range(down + filter_rh, height - filter_rh - 1):
+        for j in range(filter_rw + 1, width - filter_rw - 1):
+            dst_img[i,j] -= ((integral[i + filter_rh, j + filter_rw]
+            + integral[i - filter_rh - 1, j - filter_rw - 1]
+            - integral[i - filter_rh - 1, j + filter_rw]
+            - integral[i + filter_rh, j - filter_rw -1])
+            / filter_size)
+                
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Process cross boundary with invalid region'''
+    '''Up left corner'''
+    for i in range(up - filter_rh + 1, up + 1):
+        for j in range(left - filter_rw + 1, left + filter_rw + 1):
+            diff_val = (integral[i - filter_rh - 1, j - filter_rw - 1]
+                         - integral[i - filter_rh - 1, j + filter_rw]
+                         - integral[i + filter_rh, j - filter_rw - 1]
+                         - integral[up, left]
+                         + integral[i + filter_rh, left]
+                         + integral[up, j + filter_rw])
+               
+            area = filter_size - (i + filter_rh - up) * (j + filter_rw - left)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    for i in range(up + 1, up + filter_rh + 1):
+        for j in range(left - filter_rw + 1, left + 1):
+            diff_val = (integral[i - filter_rh - 1, j - filter_rw - 1]
+                         - integral[i - filter_rh - 1, j + filter_rw]
+                         - integral[i + filter_rh, j - filter_rw - 1]
+                         - integral[up, left]
+                         + integral[i + filter_rh, left]
+                         + integral[up, j + filter_rw])
+            
+            area = filter_size - (i + filter_rh - up) * (j + filter_rw - left)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    '''Up edge'''
+    for i in range(up - filter_rh + 1, up + 1):
+        for j in range(left + filter_rw + 1, right - filter_rw):
+            sum_big = (integral[up, j + filter_rw]
+                       + integral[i - filter_rh - 1, j - filter_rw - 1]
+                       - integral[i - filter_rh - 1, j + filter_rw]
+                       - integral[up , j - filter_rw - 1])
+            
+            area = (up - i + filter_rh + 1) * filter_w
+            dst_img[i,j] -= sum_big / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    '''Up right corner'''
+    for i in range(up - filter_rh + 1, up + 1):
+        for j in range(right - filter_rw, right + filter_rw):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, right - 1]
+                        - integral[up, j - filter_rw - 1]
+                        + integral[up, right - 1])
+            area = filter_size - (i + filter_rh - up) * (right - j + filter_rw)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    for i in range(up, up + filter_rh + 1):
+        for j in range(right, right + filter_rw):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, right - 1]
+                        - integral[up, j - filter_rw - 1]
+                        + integral[up, right - 1])
+            
+            area = filter_size - (i + filter_rh - up) * (right - j + filter_rw)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    '''Right edge'''
+    for i in range(up + filter_rh + 1, down - filter_rh):
+        for j in range(right, right + filter_rw):
+            sum_big = (integral[i + filter_rh, j + filter_rw]
+                       + integral[i - filter_rh - 1, right - 1]
+                       - integral[i - filter_rh - 1, j + filter_rw]
+                       - integral[i + filter_rh, right - 1])
+            
+            area = filter_h * (j + filter_rw - right + 1)
+            dst_img[i,j] -= sum_big / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    '''Down right corner'''
+    for i in range(down - filter_rh, down + filter_rh):
+        for j in range(right, right + filter_rw):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, right - 1]
+                        + integral[down - 1, j - filter_rw - 1]
+                        + integral[i - filter_rh - 1, right -1])
+            
+            area = filter_size - (down - i + filter_rh) * (right - j + filter_rw)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    for i in range(down, down + filter_rh):
+        for j in range(right - filter_rw, right):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        - integral[i - filter_rh - 1, j + filter_rw]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, right - 1]
+                        + integral[down - 1, j - filter_rw - 1]
+                        + integral[i - filter_rh - 1, right -1])
+            
+            area = filter_size - (down - i + filter_rh) * (right - j + filter_rw)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    '''Down edge'''
+    for i in range(down, down + filter_rh):
+        for j in range(left + filter_rw + 1, right - filter_rw):
+            sum_big = (integral[i + filter_rh, j + filter_rw]
+                       + integral[down - 1, j - filter_rw -1]
+                       - integral[down - 1, j + filter_rw]
+                       - integral[i + filter_rh, j - filter_rw - 1])
+            
+            area = (i + filter_rh - down + 1) * filter_w
+            dst_img[i,j] -= sum_big / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    '''Down left corner'''
+    for i in range(down, down + filter_rh):
+        for j in range(left - filter_rw + 1, left + filter_rw + 1):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, j + filter_rw]
+                        - integral[i - filter_rh - 1, left]
+                        + integral[down - 1, left])
+            
+            area = filter_size - (down - i + filter_rh) * (j + filter_rw - left)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    for i in range(down - filter_rh, down):
+        for j in range(left - filter_rw + 1, left + 1):
+            diff_val = (integral[i + filter_rh, j + filter_rw]
+                        + integral[i - filter_rh - 1, j - filter_rw - 1]
+                        - integral[i + filter_rh, j - filter_rw - 1]
+                        - integral[down - 1, j + filter_rw]
+                        - integral[i - filter_rh - 1, left]
+                        + integral[down - 1, left])
+            
+            area = filter_size - (down - i + filter_rh) *(j + filter_rw - left)
+            dst_img[i,j] -= diff_val / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+
+    '''Left edge'''
+    for i in range(up + filter_rh + 1, down - filter_rh):
+        for j in range(left - filter_rw + 1, left + 1):
+            sum_big = (integral[i + filter_rh, left]
+                       + integral[i - filter_rh - 1, j - filter_rw - 1]
+                       - integral[i - filter_rh - 1, left]
+                       - integral[i + filter_rh, j - filter_rw - 1])
+            
+            area = filter_h * (left - j + filter_rw + 1)
+            dst_img[i,j] -= sum_big / area
+            if dst_img[i,j] < 0 : dst_img[i,j] = 0
+    
+    return np.array(dst_img, dtype = np.uint8)
+    
+
+    
 def diff_filter(filter_bh = 9, filter_bw = 9, filter_sh = 3, filter_sw = 3):
     '''
     Multiscale filter by mean filter
@@ -237,6 +818,7 @@ def diff_filter(filter_bh = 9, filter_bw = 9, filter_sh = 3, filter_sw = 3):
     '''Make all negitive element to be zeros'''
     musk = multiscale < 0
     multiscale[musk] = 0
+    multiscale = np.array(multiscale, dtype = np.uint8)
     '''Display result'''
     pl.figure('Multiscale filter by mean')
     pl.gray()
