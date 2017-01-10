@@ -41,7 +41,15 @@ class science_student(student):
         self.__skill = skill
         
 class art_student(student):
-    pass
+    def __init__(self, name, ID, level):
+        #Super inheritance.Call constructor of father
+        super(art_student, self).__init__(name, ID)
+        self.__level = level
+    
+    def display_info(self):
+        #Call method of father
+        super(art_student, self).display_info()
+        print('Art of level is: ', self.__level)
         
 def try_class():
     stu = student('Jack', 955)
@@ -58,10 +66,11 @@ def try_class():
     print('stu_s is a instance of student:', isinstance(stu_s, student))
     #List all method and attribute of this class
     print('All method and attribute in stu is :', dir(stu_s))
-    stu_a = art_student('Mike',990)
+    stu_a = art_student('Mike',990,3)
     print('All method and attribute in art student object is :',dir(stu_a))
     print('All method and attribute in art student class is :',dir(art_student))
     print(stu_a.get_name())
+    stu_a.display_info()
     
 
     
