@@ -70,11 +70,7 @@ class Weekday(Enum):
     Fri = 5
     Sat = 6
         
-   
-        
-class Transformer(person, car):
-    #multiple inheritance, Mixln design
-    pass
+
 
 def set_skill(self,skill):
     self.skill = skill
