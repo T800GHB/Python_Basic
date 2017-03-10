@@ -83,3 +83,24 @@ def distribute_files(src_dir, dst_prefix, group_capcaity):
                 os.makedirs(dst_dir)
 
         shutil.copy(os.path.join(src_dir, files[i]), dst_dir)  
+
+def aggregate_files(src_dir, dst_dir):
+    '''
+    This tool will gether files from different directories into one directory
+    '''
+    #Find all the directories
+    dir_list = [x for x in os.listdir(src_dir) if os.path.isdir(os.path.join(src_dir, x))]
+    #Pay attention to parameter of os.path, if you just assign name, it will not work
+    #Please add path to the directory or file
+    if os.path.exists(dst_dir):
+        shutil.rmtree(dst_dir)
+        os.makedirs(dst_dir)
+    else:
+        os.makedirs(dst_dir)
+    #Copy to one driectories
+    num_dirs = len(dir_list)
+    for i in range(num_dirs):
+        src_path = os.path.join(src_dir, dir_list[i])
+        file_list =  [x for x in os.listdir(src_path) if os.path.isfile(os.path.join(src_path,x))]
+        for f in file_list:
+            shutil.copy(os.path.join(src_path,f), dst_dir)
