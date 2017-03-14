@@ -70,11 +70,15 @@ def distribute_files(src_dir, dst_prefix, group_capcaity):
             files[i] = new_name
     #Sort file name
     files.sort()    
-
+    
+    order_capacity = len(str(num_files // group_capcaity))
+    
     for i in range(num_files):
         if i % group_capcaity == 0:
             dst_dir = os.path.join(dst_prefix, 
-                                   os.path.split(src_dir)[-1] + '_' + str(i // group_capcaity))
+                                   os.path.split(src_dir)[-1] + '_'
+                                   + (order_capacity - len(str(i // group_capcaity))) * pad_char
+                                   + str(i // group_capcaity))
             if not os.path.exists(dst_dir):
                 os.makedirs(dst_dir)
             else:
