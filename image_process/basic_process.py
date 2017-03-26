@@ -12,6 +12,7 @@ from PIL import Image
 import numpy as np
 import pylab as pl
 import os
+import struct
 
 def get_imlist(path):
     """
@@ -221,3 +222,26 @@ def demo_average():
     pl.imshow(average_im)
     pl.axis('off')
     pl.show()
+    
+def png_palette():
+    '''
+    Read palette from png 8-bits format image
+    '''
+    img = Image.open('./image_process.voc_label.png')
+    #Get the palette object
+    palette = img.palette
+    '''
+    Get the data of palette, return a tuple
+    First element in this tuple is color mode
+    Second element is data of palette orignize with string format.
+    '''
+    p_data = palette.get_data()
+    '''
+    Parse the palette value from string
+    768 is 3 color channels and 256 level on each channel
+    '''
+    p_value = struct.unpack('768B', p_data[1])
+    #Reshape palette
+    p_arr = np.array(p_value, dtype = np.uint8).reshape((256,3))
+    
+    return p_arr
