@@ -22,6 +22,7 @@ import numpy as np
 import os
 import shutil
 import argparse
+import sys
 
 rgb_palette = {'background': (0,0,0),
                'person': (255,0,0),                
@@ -48,6 +49,20 @@ label_palette = {0: (0,0,0),
                  6: (128,0,128),                 
                  255: (255,255,255)}
 
+class process_bar(object):
+    def __init__(self, num_items, bar_length = 50, init_count = 0.0):
+        self.__process_bar_length = bar_length
+        #The factor of percent must be not integer
+        self.__num_files = float(num_items)
+        self.__file_count = float(init_count)
+    def update(self):
+        self.__file_count += 1
+        percent = self.__file_count / self.__num_files
+        has_done = '#' * int(percent * self.__process_bar_length)
+        spaces = ' ' * (self.__process_bar_length - len(has_done))
+        sys.stdout.write("\rPercent: [%s] %d%%"%(has_done + spaces, percent * 100))
+        sys.stdout.flush()
+    
 def randomPalette(length, min, max):  
     return [ np.random.randint(min, max) for x in range(length)]
 
@@ -64,7 +79,9 @@ def create_png_palette():
     return assign_palette
 
 def xml_decode(filename):
-    
+    '''
+    Read object information from xml file
+    '''
     file_root = ElementTree.parse(filename)
     image_name = file_root.find('filename').text    
     image_size = file_root.find('imagesize')
@@ -72,6 +89,8 @@ def xml_decode(filename):
     height = int(image_size.find('nrows').text)
     
     list_object = file_root.findall('object')
+    num_object = len(list_object)
+    deleted_count = 0
     object_dict = {}
     
     for obj in list_object:    
@@ -98,8 +117,15 @@ def xml_decode(filename):
                 else:
                     object_dict[paint_layer] = []                    
                     object_dict[paint_layer].append(item)
+        else:
+            deleted_count += 1
+    
+    if deleted_count == num_object:
+        valid_state = False
+    else:
+        valid_state = True
                     
-    return image_name, object_dict, width, height
+    return image_name, object_dict, width, height, valid_state
 
 def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, 
                   line_width = 3, mask_pts = None, transparent = 1, alpha = 0.2):   
@@ -124,10 +150,7 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict,
         if mask_pts is not None:
             draw_img.polygon(mask_pts, fill = rgb_palette['ignore'])
         img.save(os.path.join(dst_dir, filename))
-        return img
-        
-        
-           
+        return img           
 
 def create_label(image_name, folder, item_dict, width, height, 
                  assign_palette, line_width = 3, mask_pts = None):
@@ -140,7 +163,7 @@ def create_label(image_name, folder, item_dict, width, height,
             try:
                 draw_label.polygon(points, fill = gray_palette[name])
             except KeyError as e:
-                    print('KeyError: ', e, ', happen with file: ', image_name)    
+                    print('\nKeyError: ', e, ', happen with file: ', image_name)    
             points.append(points[0])
             draw_label.line(points, fill = gray_palette['ignore'], width = line_width)
         
@@ -157,20 +180,24 @@ def create_label(image_name, folder, item_dict, width, height,
     
     return label
 
-def label_generate(args):
+def init_generate(args):
     xml_dir = args.dir
     if xml_dir == None:
-        return
+        raise IOError('Xml direcotry must be specified')
     if not os.path.exists(xml_dir):
         raise IOError('No such directory contained xml named: ', xml_dir)
         
     mask_file = args.mask
-    work_dir = os.getcwd()
+    work_dir = os.path.join(os.getcwd(),'result')
+    if not os.path.exists(work_dir):
+        os.mkdir(work_dir)
+        
     path_fraction = xml_dir.split('/')
     if path_fraction[-1] == '':
         orignal_dir = path_fraction[-2]
     else:
         orignal_dir = path_fraction[-1]
+    
     label_dir = os.path.join(work_dir, (orignal_dir + '_label'))
     if os.path.exists(label_dir):
         shutil.rmtree(label_dir)
@@ -178,44 +205,85 @@ def label_generate(args):
     else:
         os.makedirs(label_dir)
     
-    dirlist = os.listdir(xml_dir)
-    
+    dirlist = os.listdir(xml_dir)    
     files = [x for x in dirlist if os.path.isfile(os.path.join(xml_dir,x))]
     assign_palette = create_png_palette()
-    mask = xml_decode(mask_file)[1][0][0][1]
+    if args.mask is None:
+        mask = None
+    else:
+        mask = xml_decode(mask_file)[1][0][0][1]
+
     image_path = args.images
+    
     if image_path == None:
-        for f in files:
-            xml_file_name = os.path.join(xml_dir, f)    
-            image_name, object_dict, width, height = xml_decode(xml_file_name)
-            create_label(image_name, label_dir, object_dict, 
-                         width, height, assign_palette, mask_pts = mask, line_width = 4)
+        blend_dir = None
+        extract_dir = None
+        images = []
     else:
         if not os.path.exists(image_path):
             raise IOError('No such directory contained images named: ', image_path)
-        image_list = os.listdir(image_path)
-        images = [x for x in image_list if os.path.isfile(os.path.join(image_path,x))]
+        else:
+            image_list = os.listdir(image_path)
+            images = [x for x in image_list if os.path.isfile(os.path.join(image_path,x))]            
+            if len(images):                
+                blend_dir = os.path.join(work_dir, (orignal_dir + '_blend'))                
+                if os.path.exists(blend_dir):
+                    shutil.rmtree(blend_dir)
+                    os.makedirs(blend_dir)
+                else:
+                    os.makedirs(blend_dir)
+                #Copy labeled images to new directory
+                extract_dir = os.path.join(work_dir, (orignal_dir + '_extract'))
+                
+                if os.path.exists(extract_dir):
+                    shutil.rmtree(extract_dir)
+                    os.makedirs(extract_dir)
+                else:
+                    os.makedirs(extract_dir)
+            else:
+                print('Image directory is empty!!!!')                
+    
+    return (xml_dir, work_dir, orignal_dir, label_dir, files, assign_palette, mask,
+            image_path, blend_dir, extract_dir, images)
+
+def label_generate(args):
+
+    (xml_dir, work_dir, orignal_dir, label_dir, labels, assign_palette, mask, 
+     image_path, blend_dir, extract_dir, images) = init_generate(args)
+   
+    bar_worker = process_bar(num_items= len(labels))
+    
+    if image_path == None:
+        for f in labels:
+            xml_file_name = os.path.join(xml_dir, f)
+            
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name)
+            bar_worker.update()
+            if valid_state:
+                create_label(image_name, label_dir, object_dict, 
+                         width, height, assign_palette, mask_pts = mask, line_width = 4)
+    else: 
         num_image = len(images)
         if num_image:
             images_perfix_list = [os.path.splitext(x)[0] for x in images]
-            image_extension = os.path.splitext(images[0])[1]
-            blend_dir = os.path.join(work_dir, (orignal_dir + '_blend'))         
-            if os.path.exists(blend_dir):
-                shutil.rmtree(blend_dir)
-                os.makedirs(blend_dir)
-            else:
-                os.makedirs(blend_dir)
-        else:
-            print('Image directory is empty!!!!')
-        for f in files:
+            image_extension = os.path.splitext(images[0])[1]        
+                
+        for f in labels:
             xml_file_name = os.path.join(xml_dir, f)    
-            image_name, object_dict, width, height = xml_decode(xml_file_name)
-            label = create_label(image_name, label_dir, object_dict, 
-                         width, height, assign_palette, mask_pts = mask, line_width = 4)
-            label_perfix_name = os.path.splitext(f)[0]
-            if num_image and (label_perfix_name in images_perfix_list):
-                draw_on_image(label_perfix_name + image_extension, image_path,
-                blend_dir, label, object_dict, 3, mask, args.transparent, args.alpha)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name)
+            bar_worker.update()
+            if valid_state:
+                label = create_label(image_name, label_dir, object_dict, 
+                             width, height, assign_palette, mask_pts = mask, 
+                             line_width = 4)
+                label_perfix_name = os.path.splitext(f)[0]           
+                
+                if num_image and (label_perfix_name in images_perfix_list):
+                    draw_on_image(label_perfix_name + image_extension, image_path,
+                    blend_dir, label, object_dict, 3, mask, args.transparent, args.alpha)
+                    shutil.copy(os.path.join(image_path, 
+                                (label_perfix_name + image_extension)), extract_dir)    
+    print('\n')
         
 if __name__ == '__main__':
     
