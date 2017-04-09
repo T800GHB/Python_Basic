@@ -82,48 +82,55 @@ def xml_decode(filename):
     '''
     Read object information from xml file
     '''
-    file_root = ElementTree.parse(filename)
-    image_name = file_root.find('filename').text    
-    image_size = file_root.find('imagesize')
-    width = int(image_size.find('ncols').text)
-    height = int(image_size.find('nrows').text)
-    
-    list_object = file_root.findall('object')
-    num_object = len(list_object)
-    deleted_count = 0
-    object_dict = {}
-    
-    for obj in list_object:    
+    try:
+        file_root = ElementTree.parse(filename)
+        image_name = file_root.find('filename').text    
+        image_size = file_root.find('imagesize')
+        width = int(image_size.find('ncols').text)
+        height = int(image_size.find('nrows').text)
         
-        if obj.find('deleted').text != '1':
-            item = []
-            name = obj.find('name').text
-            item.append(name)
-            points = obj.find('polygon').findall('pt')
-            point_list = []
-            for coor in points:
-                x = int(coor.find('x').text)
-                y = int(coor.find('y').text)            
-                point_list.append((x,y))
-            item.append(point_list)       
-            
-            layer_attribute = obj.find('attributes').text
-            if layer_attribute == None:
-                pass
-            else:            
-                paint_layer = int(layer_attribute)
-                if paint_layer in object_dict.keys():
-                    object_dict[paint_layer].append(item)
-                else:
-                    object_dict[paint_layer] = []                    
-                    object_dict[paint_layer].append(item)
+        list_object = file_root.findall('object')
+        num_object = len(list_object)
+        deleted_count = 0
+        object_dict = {}
+        
+        for obj in list_object:               
+            if obj.find('deleted').text != '1':
+                item = []
+                name = obj.find('name').text
+                item.append(name)
+                points = obj.find('polygon').findall('pt')
+                point_list = []
+                for coor in points:
+                    x = int(coor.find('x').text)
+                    y = int(coor.find('y').text)            
+                    point_list.append((x,y))
+                item.append(point_list)       
+                
+                layer_attribute = obj.find('attributes').text
+                if layer_attribute == None:
+                    pass
+                else:            
+                    paint_layer = int(layer_attribute)
+                    if paint_layer in object_dict.keys():
+                        object_dict[paint_layer].append(item)
+                    else:
+                        object_dict[paint_layer] = []                    
+                        object_dict[paint_layer].append(item)
+            else:
+                deleted_count += 1
+        
+        if deleted_count == num_object:
+            valid_state = False
         else:
-            deleted_count += 1
-    
-    if deleted_count == num_object:
-        valid_state = False
-    else:
-        valid_state = True
+            valid_state = True
+    except Exception as e:
+        print('Xml file load error happened :', e)
+    finally:
+        image_name = None
+        height = width = 0
+        object_dict = {}
+        valid_state = False       
                     
     return image_name, object_dict, width, height, valid_state
 
