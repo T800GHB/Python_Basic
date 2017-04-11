@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 20 18:08:48 2017
@@ -142,8 +142,10 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict,
         blend_image.save(os.path.join(dst_dir, filename))  
         return blend_image
     else:
-        draw_img = pd.Draw(img, 'RGB')        
-        for i in item_dict.keys():
+        draw_img = pd.Draw(img, 'RGB') 
+        item_keys = list(item_dict.keys())
+        item_keys.sort()       
+        for i in item_keys:
             for part in item_dict[i]:
                 name = part[0]
                 points = part[1]
@@ -161,8 +163,10 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict,
 def create_label(image_name, folder, item_dict, width, height, 
                  assign_palette, line_width = 3, mask_pts = None):
     label = pi.new(mode = 'L', size = (width, height), color = (0,))
-    draw_label = pd.Draw(label, 'L')
-    for i in item_dict.keys():
+    draw_label = pd.Draw(label, 'L')     
+    item_keys = list(item_dict.keys())
+    item_keys.sort()
+    for i in item_keys:
         for part in item_dict[i]:
             name = part[0]
             points = part[1]
