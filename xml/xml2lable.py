@@ -125,8 +125,7 @@ def xml_decode(filename):
         else:
             valid_state = True
     except Exception as e:
-        print('Xml file load error happened :', e)
-    finally:
+        print('Xml file load error happened :', e)    
         image_name = None
         height = width = 0
         object_dict = {}
