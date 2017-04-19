@@ -30,7 +30,7 @@ rgb_palette = {'background': (0,0,0),
                'bump': (0,255,255),
                'road': (0,255,0),
                'parkinglots': (255,0,255),
-               'undefined': (128,0,128),
+               'obstacle': (128,0,128),
                'ignore': (255,255,255)}                 
 gray_palette = {'background': (0,),
                 'person': (1,),
@@ -38,7 +38,7 @@ gray_palette = {'background': (0,),
                 'bump': (3,), 
                 'road': (4,), 
                 'parkinglots': (5,),
-                'undefined': (6,),
+                'obstacle': (6,),
                 'ignore': (255,)}
 label_palette = {0: (0,0,0),
                  1: (255,0,0),                
@@ -78,7 +78,7 @@ def create_png_palette():
 
     return assign_palette
 
-def xml_decode(filename):
+def xml_decode(filename, omit = 1):
     '''
     Read object information from xml file
     '''
@@ -96,8 +96,12 @@ def xml_decode(filename):
         
         for obj in list_object:               
             if obj.find('deleted').text != '1':
+                occluded = obj.find('occluded').text
                 item = []
-                name = obj.find('name').text
+                if occluded == 'yes' and omit == 1:
+                    name = 'ignore'
+                else:
+                    name = obj.find('name').text
                 item.append(name)
                 points = obj.find('polygon').findall('pt')
                 point_list = []
@@ -221,7 +225,7 @@ def init_generate(args):
     if args.mask is None:
         mask = None
     else:
-        mask = xml_decode(mask_file)[1][0][0][1]
+        mask = xml_decode(mask_file, 0)[1][0][0][1]
 
     image_path = args.images
     
@@ -267,7 +271,7 @@ def label_generate(args):
         for f in labels:
             xml_file_name = os.path.join(xml_dir, f)
             
-            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args.omit)
             bar_worker.update()
             if valid_state:
                 create_label(image_name, label_dir, object_dict, 
@@ -280,7 +284,7 @@ def label_generate(args):
                 
         for f in labels:
             xml_file_name = os.path.join(xml_dir, f)    
-            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args.omit)
             bar_worker.update()
             if valid_state:
                 label = create_label(image_name, label_dir, object_dict, 
@@ -312,5 +316,7 @@ if __name__ == '__main__':
                         help = 'Whether draw label on orignal image transparently')
     parser.add_argument('-a', '--alpha', type = float, default = 0.2,
                         help = 'Transparent ratio')
+    parser.add_argument('-o', '--omit', type = int , default = 1,
+                        help = 'Whether treat the occluded object as ignore')
     args = parser.parse_args()
     label_generate(args)
