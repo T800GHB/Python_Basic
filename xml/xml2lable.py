@@ -33,18 +33,18 @@ rgb_palette = {'background': (0,0,0),
                'obstacle': (128,0,128),
                'ignore': (255,255,255)}                 
 gray_palette = {'background': (0,),
-                'person': (1,),
+                'road': (1,), 
                 'car': (2,), 
                 'bump': (3,), 
-                'road': (4,), 
+                'person': (4,),
                 'parkinglots': (5,),
                 'obstacle': (6,),
                 'ignore': (255,)}
 label_palette = {0: (0,0,0),
-                 1: (255,0,0),                
+                 1: (0,255,0),
                  2: (255,255,0),
                  3: (0,255,255),
-                 4: (0,255,0),
+                 4: (255,0,0),                
                  5: (255,0,255),
                  6: (128,0,128),                 
                  255: (255,255,255)}
@@ -78,7 +78,39 @@ def create_png_palette():
 
     return assign_palette
 
-def xml_decode(filename, omit = 1):
+def append_object_dict(obj, object_dict, object_class, omit):
+    '''
+    Store object name and polygon points into a object dict
+    Data struct of object_dict{paint_layer: ['class_name', [points of polygon]], ...}
+    '''
+    item = []
+    
+    occluded = obj.find('occluded').text
+    if occluded == 'yes' and omit == 1:
+        name = 'ignore'
+    else:
+        name = object_class
+    item.append(name)
+    points = obj.find('polygon').findall('pt')
+    point_list = []
+    for coor in points:
+        x = int(coor.find('x').text)
+        y = int(coor.find('y').text)            
+        point_list.append((x,y))
+    item.append(point_list)       
+    
+    layer_attribute = obj.find('attributes').text
+    if layer_attribute == None:
+        pass
+    else:            
+        paint_layer = int(layer_attribute)
+        if paint_layer in object_dict.keys():
+            object_dict[paint_layer].append(item)
+        else:
+            object_dict[paint_layer] = []                    
+            object_dict[paint_layer].append(item)
+
+def xml_decode(filename, omit = 1, road = 0):
     '''
     Read object information from xml file
     '''
@@ -96,31 +128,15 @@ def xml_decode(filename, omit = 1):
         
         for obj in list_object:               
             if obj.find('deleted').text != '1':
-                occluded = obj.find('occluded').text
-                item = []
-                if occluded == 'yes' and omit == 1:
-                    name = 'ignore'
-                else:
-                    name = obj.find('name').text
-                item.append(name)
-                points = obj.find('polygon').findall('pt')
-                point_list = []
-                for coor in points:
-                    x = int(coor.find('x').text)
-                    y = int(coor.find('y').text)            
-                    point_list.append((x,y))
-                item.append(point_list)       
-                
-                layer_attribute = obj.find('attributes').text
-                if layer_attribute == None:
-                    pass
-                else:            
-                    paint_layer = int(layer_attribute)
-                    if paint_layer in object_dict.keys():
-                        object_dict[paint_layer].append(item)
+                object_class = obj.find('name').text
+                if road:
+                    if object_class == 'road' or object_class == 'bump':
+                        append_object_dict(obj, object_dict, 'road', omit)  
                     else:
-                        object_dict[paint_layer] = []                    
-                        object_dict[paint_layer].append(item)
+                        append_object_dict(obj, object_dict, 'background', omit)       
+                else:
+                    append_object_dict(obj, object_dict, object_class, omit)            
+                        
             else:
                 deleted_count += 1
         
@@ -138,7 +154,7 @@ def xml_decode(filename, omit = 1):
     return image_name, object_dict, width, height, valid_state
 
 def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, 
-                  line_width = 3, mask_pts = None, transparent = 1, alpha = 0.2):   
+                  line_width = 4, mask_pts = None, transparent = 1, alpha = 0.2):   
     img = pi.open(os.path.join(image_dir, filename)).convert('RGB')
     if transparent:
         attach_image = label_image.convert('RGB')
@@ -157,8 +173,11 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict,
                     draw_img.polygon(points, fill = rgb_palette[name])
                 except KeyError as e:
                     print('KeyError: ', e, ', happen with file: ', filename)
-                points.append(points[0])
-                draw_img.line(points, fill = rgb_palette['ignore'], width = line_width)
+                if line_width:
+                    points.append(points[0])
+                    draw_img.line(points, fill = rgb_palette['ignore'], width = line_width)
+                else:
+                    pass
         if mask_pts is not None:
             draw_img.polygon(mask_pts, fill = rgb_palette['ignore'])
         img.save(os.path.join(dst_dir, filename))
@@ -177,9 +196,12 @@ def create_label(image_name, folder, item_dict, width, height,
             try:
                 draw_label.polygon(points, fill = gray_palette[name])
             except KeyError as e:
-                    print('\nKeyError: ', e, ', happen with file: ', image_name)    
-            points.append(points[0])
-            draw_label.line(points, fill = gray_palette['ignore'], width = line_width)
+                    print('\nKeyError: ', e, ', happen with file: ', image_name)
+            if line_width:
+                points.append(points[0])
+                draw_label.line(points, fill = gray_palette['ignore'], width = line_width)
+            else:
+                pass
         
     if mask_pts is not None:
         draw_label.polygon(mask_pts, fill = gray_palette['ignore'])
@@ -271,11 +293,11 @@ def label_generate(args):
         for f in labels:
             xml_file_name = os.path.join(xml_dir, f)
             
-            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args.omit)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args.omit, args.road)
             bar_worker.update()
             if valid_state:
                 create_label(image_name, label_dir, object_dict, 
-                         width, height, assign_palette, mask_pts = mask, line_width = 4)
+                         width, height, assign_palette, mask_pts = mask, line_width = args.linewidth)
     else: 
         num_image = len(images)
         if num_image:
@@ -284,17 +306,17 @@ def label_generate(args):
                 
         for f in labels:
             xml_file_name = os.path.join(xml_dir, f)    
-            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args.omit)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args.omit, args.road)
             bar_worker.update()
             if valid_state:
                 label = create_label(image_name, label_dir, object_dict, 
                              width, height, assign_palette, mask_pts = mask, 
-                             line_width = 4)
+                             line_width = args.linewidth)
                 label_perfix_name = os.path.splitext(f)[0]           
                 
                 if num_image and (label_perfix_name in images_perfix_list):
                     draw_on_image(label_perfix_name + image_extension, image_path,
-                    blend_dir, label, object_dict, 3, mask, args.transparent, args.alpha)
+                    blend_dir, label, object_dict, args.linewidth, mask, args.transparent, args.alpha)
                     shutil.copy(os.path.join(image_path, 
                                 (label_perfix_name + image_extension)), extract_dir)    
     print('\n')
@@ -318,5 +340,9 @@ if __name__ == '__main__':
                         help = 'Transparent ratio')
     parser.add_argument('-o', '--omit', type = int , default = 1,
                         help = 'Whether treat the occluded object as ignore')
+    parser.add_argument('-r', '--road', type = int, default = 0,
+                        help = 'Only label road as foreground, otherwise is background')
+    parser.add_argument('-l', '--linewidth', type = int, default = 4,
+                        help = 'Ignore line width between different objects')
     args = parser.parse_args()
     label_generate(args)
