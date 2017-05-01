@@ -68,3 +68,5 @@ target/
 
 #emacs autosave file
 *.py~
+#cProfile file
+*.prof
