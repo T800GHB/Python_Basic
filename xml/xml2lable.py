@@ -89,7 +89,6 @@ def append_object_dict(obj, object_dict, object_class, omit):
     occluded = obj.find('occluded').text
     if occluded == 'yes' and omit == 1:
         name = 'ignore'
-#        print(omit)
     else:
         name = object_class
     item.append(name)
@@ -112,7 +111,7 @@ def append_object_dict(obj, object_dict, object_class, omit):
             object_dict[paint_layer] = []                    
             object_dict[paint_layer].append(item)
 
-def xml_decode(filename, args):
+def xml_decode(filename, args, label_ref = None):
     '''
     Read object information from xml file
     '''
@@ -131,11 +130,11 @@ def xml_decode(filename, args):
         for obj in list_object:               
             if obj.find('deleted').text != '1':
                 object_class = obj.find('name').text
-                if args.road:
-                    if object_class == 'road' or object_class == 'bump':
-                        append_object_dict(obj, object_dict, 'road', args.omit)  
+                if label_ref != None:
+                    if gray_palette[object_class][0] in label_ref:
+                        append_object_dict(obj, object_dict, object_class, args.omit)  
                     else:
-                        append_object_dict(obj, object_dict, 'background', args.omit)       
+                        append_object_dict(obj, object_dict, 'background', omit = 0)       
                 else:
                     append_object_dict(obj, object_dict, object_class, args.omit)            
                         
@@ -147,7 +146,7 @@ def xml_decode(filename, args):
         else:
             valid_state = True
     except Exception as e:
-        print('Xml file load error happened :', e)    
+        print('Xml file : '  ,filename, ' load error happened : ', e)    
         image_name = None
         height = width = 0
         object_dict = {}
@@ -198,7 +197,7 @@ def create_label(image_name, folder, item_dict, width, height,
                 draw_label.polygon(points, fill = gray_palette[name])
             except KeyError as e:
                     print('\nKeyError: ', e, ', happen with file: ', image_name)
-            if args.linewidth:
+            if args.linewidth and name != 'background':
                 points.append(points[0])
                 draw_label.line(points, fill = gray_palette['ignore'], width = args.linewidth)
             else:
@@ -255,6 +254,17 @@ def init_generate(args):
         mask = None
     else:
         mask = xml_decode(mask_file, args)[1][0][0][1]
+    
+    if args.reference != None:        
+        str_index = args.reference
+        try:
+            label_index = str_index.split(',')
+            label_ref = [int(x) for x in label_index]
+        except ValueError as e :
+            print('Specific an abnormal class index: ', e )
+            exit()
+    else:
+        label_ref = None
 
     image_path = args.images
     
@@ -284,15 +294,16 @@ def init_generate(args):
                 else:
                     os.makedirs(extract_dir)
             else:
-                print('Image directory is empty!!!!')                
+                print('Image directory is empty!!!!')       
+                
     
     return (xml_dir, work_dir, orignal_dir, label_dir, files, assign_palette, mask,
-            image_path, blend_dir, extract_dir, images)
+            image_path, blend_dir, extract_dir, images, label_ref)
 
 def label_generate(args):
 
     (xml_dir, work_dir, orignal_dir, label_dir, labels, assign_palette, mask, 
-     image_path, blend_dir, extract_dir, images) = init_generate(args)
+     image_path, blend_dir, extract_dir, images, label_ref) = init_generate(args)
    
     bar_worker = process_bar(num_items= len(labels))
     
@@ -300,7 +311,7 @@ def label_generate(args):
         for f in labels:
             xml_file_name = op.join(xml_dir, f)
             
-            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args, label_ref)
             bar_worker.update()
             if valid_state:
                 create_label(image_name, label_dir, object_dict, 
@@ -313,7 +324,7 @@ def label_generate(args):
                 
         for f in labels:
             xml_file_name = op.join(xml_dir, f)    
-            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args)
+            image_name, object_dict, width, height, valid_state = xml_decode(xml_file_name, args, label_ref)
             bar_worker.update()
             if valid_state:
                 label = create_label(image_name, label_dir, object_dict, 
@@ -336,7 +347,17 @@ def label_generate(args):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(                                     
-    description= 'Convert xml label to image label for image segmentation',
+    description= '''Convert xml label to image label for image segmentation
+                    Class index:
+                        background: 0
+                        road: 1
+                        car: 2
+                        bump: 3
+                        person: 4
+                        parkinglots: 5
+                        obstacle: 6
+                        ignore: 255
+                 ''',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     parser.add_argument('-d','--dir', type = str, default = None,
@@ -344,17 +365,18 @@ if __name__ == '__main__':
     parser.add_argument('-m','--mask', type = str, default = None,
                         help = 'The mask that will be used onto every label')
     parser.add_argument('-i','--images', type = str, default = None,
-                        help = 
-    'The image directory, if this argument is set ,label will show on orignal image')
+                        help = '''The image directory, if this argument is set ,
+                                    label will show on orignal image''')
     parser.add_argument('-t', '--transparent', type = int, default = 1,
                         help = 'Whether draw label on orignal image transparently')
     parser.add_argument('-a', '--alpha', type = float, default = 0.2,
                         help = 'Transparent ratio')
     parser.add_argument('-o', '--omit', type = int , default = 1,
                         help = 'Whether treat the occluded object as ignore')
-    parser.add_argument('-r', '--road', type = int, default = 0,
-                        help = 'Only label road as foreground, otherwise is background')
-    parser.add_argument('-l', '--linewidth', type = int, default = 4,
+    parser.add_argument('-r', '--reference', type = str, default = None,
+                        help = '''Specific the which label will be used. 
+                                Assign class index and sperate by comma''')    
+    parser.add_argument('-l', '--linewidth', type = int, default = 2,
                         help = 'Ignore line width between different objects')
     parser.add_argument('-s', '--size', type = float, default = 1.0,
                         help = 'Size ratio of orignal images and labels')
