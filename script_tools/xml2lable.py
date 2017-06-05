@@ -23,7 +23,7 @@ import os
 import os.path as op
 import shutil
 import argparse
-import sys
+import assist_util
 
 rgb_palette = {'background': (0,0,0),
                'person': (255,0,0),                
@@ -49,20 +49,6 @@ label_palette = {0: (0,0,0),
                  5: (255,0,255),
                  6: (0,0,255),                 
                  255: (255,255,255)}
-
-class process_bar(object):
-    def __init__(self, num_items, bar_length = 50, init_count = 0.0):
-        self.__process_bar_length = bar_length
-        #The factor of percent must be not integer
-        self.__num_files = float(num_items)
-        self.__file_count = float(init_count)
-    def update(self):
-        self.__file_count += 1
-        percent = self.__file_count / self.__num_files
-        has_done = '#' * int(percent * self.__process_bar_length)
-        spaces = ' ' * (self.__process_bar_length - len(has_done))
-        sys.stdout.write("\rPercent: [%s] %d%%"%(has_done + spaces, percent * 100))
-        sys.stdout.flush()
     
 def randomPalette(length, min, max):  
     return [ np.random.randint(min, max) for x in range(length)]
@@ -305,7 +291,7 @@ def label_generate(args):
     (xml_dir, work_dir, orignal_dir, label_dir, labels, assign_palette, mask, 
      image_path, blend_dir, extract_dir, images, label_ref) = init_generate(args)
    
-    bar_worker = process_bar(num_items= len(labels))
+    bar_worker = assist_util.process_bar(num_items= len(labels))
     
     if image_path == None:
         for f in labels:
