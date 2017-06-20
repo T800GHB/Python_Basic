@@ -11,6 +11,10 @@ This model will provide some helpful function or class
 import numpy as np
 import sys
 from collections import namedtuple
+from PIL import Image, ImageOps
+import os
+import os.path as op
+import shutil
 
 rgb_palette = {'background': (0,0,0),
                'road': (0,255,0),
@@ -71,3 +75,46 @@ def create_png_palette():
     assert len(assign_palette) == 768
 
     return assign_palette
+	
+def mirror_augmentation(images_root, labels_root):
+    
+    list_data_set = os.listdir(labels_root)
+    list_data_set = [x for x in list_data_set if op.isfile(op.join(labels_root, x))]    
+    base_name_list = [x.split('.')[0] for x in list_data_set]
+
+    image_extension = '.jpg'
+    label_extension = '.png'
+    
+    for n in base_name_list:
+        #Image mirror operation
+        orignal_image_name = n + image_extension
+        new_image_name = n + '_m' + image_extension
+        im = Image.open(op.join(images_root,orignal_image_name))
+        im_m = ImageOps.mirror(im)
+        im_m.save(op.join(images_root, new_image_name))
+        #Lable mirror operation
+        orignal_label_name = n + label_extension
+        new_label_name = n + '_m' + label_extension
+        label = Image.open(op.join(labels_root, orignal_label_name))
+        label_m = ImageOps.mirror(label)
+        label_m.save(op.join(labels_root, new_label_name))
+        
+def autoconstrast_augmentation(images_root, labels_root):
+    
+    list_data_set = os.listdir(labels_root)
+    list_data_set = [x for x in list_data_set if op.isfile(op.join(labels_root, x))]    
+    base_name_list = [x.split('.')[0] for x in list_data_set]
+
+    image_extension = '.jpg'
+    label_extension = '.png'
+    
+    for n in base_name_list:
+        #Image autoconstract
+        orignal_image_name = n + image_extension
+        new_image_name = n + '_e' + image_extension
+        im = Image.open(op.join(images_root, orignal_image_name))
+        im_e = ImageOps.autocontrast(im, 5)
+        im_e.save(op.join(images_root, new_image_name))
+        
+        #Copy label
+        shutil.copy(op.join(labels_root, n + label_extension), op.join(labels_root, n + '_e' + label_extension))
