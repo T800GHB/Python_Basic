@@ -1,7 +1,7 @@
 """
 Created on Tue Jun  6 14:55:53 2017
 
-@author: hbguo
+@author: andrew
 
 Compress a set of images to a video
 """
