@@ -14,6 +14,16 @@ If some part will draw wiht same pattern on every image, we could set
 mask xml file to do that.
 We could call script by terminal and assign some options.
 """
+from xml.etree import ElementTree
+import PIL.Image as pi
+import PIL.ImageDraw as pd
+import numpy as np
+import os
+import os.path as op
+import shutil
+import argparse
+import assist_util as au
+import xml.dom.minidom as xd
 
 def append_polygon_dict(obj, object_dict, object_class, omit):
     '''
