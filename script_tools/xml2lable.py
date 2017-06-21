@@ -159,25 +159,26 @@ def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list):
         draw_object.rectangle((bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax), outline = au.rgb_palette[bbox.name])
             
     img.save(op.join(dst_dir, filename))
-
 def extract_bbox(height, width, item_dict):
     #convert store format, because paint layer does not make senes for bounding box
     bbox_list = []
     if item_dict:
         item_keys = list(item_dict.keys())
         item_keys.sort()
-        for k in item_keys:
+        for k in item_keys:            
             
-            name = (item_dict[k][0]).name
-            if name in au.collect_list:
-                xmin = width
-                ymin = height
-                xmax = 0
-                ymax = 0
-                for part in item_dict[k]:            
-                    
-                    points = part.pts
-                                    
+            name = None
+            xmin = width
+            ymin = height
+            xmax = 0
+            ymax = 0
+            for part in item_dict[k]:
+                
+                tmp_name = part.name
+                
+                if tmp_name in au.collect_list:
+                    name = tmp_name                    
+                    points = part.pts                                        
                     np_pts = np.array(points)
                     tmp_min = np.min(np_pts, axis = 0)
                     tmp_max = np.max(np_pts, axis = 0)
@@ -189,7 +190,7 @@ def extract_bbox(height, width, item_dict):
                         xmax = tmp_max[0]
                     if ymax < tmp_max[1]:
                         ymax = tmp_max[1]
-                    
+            if name:
                 bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax))
             
     return bbox_list
