@@ -68,6 +68,14 @@ def Basic_judge():
     else:
         print("I don't know!")
         
+    #Chain comparison
+    if 500 < length < 6000:
+        print("Moderate exercise")
+        
+    #Ternary operator
+    level = 'Professional' if length > 10000 else 'amateur'
+    print('Sport level: ', level)
+        
 def Basic_loop():
     names = ['Nick', 'Andrew', 'Tom', 'Freeman', 'Bush']
     for item in names:
@@ -183,6 +191,12 @@ def Basic_string():
     print (s)
     #More efficient way, less memory, '.' as seperator
     print(','.join(names))
-
-
     
+    #String format
+    s1 = 'Alice'
+    s2 = 'football'
+    s3 = '%s is a girl, she is good at %s'%(s1,s2)
+    print(s3)
+    s4 = '{name} is a girl, she is good at {event}'.format(
+            name='Lily', event='baseball')
+    print(s4)
