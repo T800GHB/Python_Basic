@@ -160,3 +160,21 @@ def Basic_assign():
     print('Value a: ',a ,' , value b: ', b)
     a,b = b,a
     print('Value a: ',a ,' , value b: ', b)
+
+def Basic_string():
+    '''
+    Basic usage of string
+    '''
+    #String concate, use '+' symbol or 'join' method
+    names = ['raymond', 'rachel', 'matthew', 'roger',
+         'betty', 'melissa', 'judith', 'charlie']   
+
+    s = names[0]
+    for name in names[1:]:
+        s += ', ' + name
+    print (s)
+    #More efficient way, less memory, '.' as seperator
+    print(','.join(names))
+
+
+    
