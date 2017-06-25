@@ -142,7 +142,17 @@ def Basic_set():
     print(type & name)
     print(type | name)
     
-        
-    
-     
-    
+def Basic_assign():
+    '''
+    Switch value of variable 'a' and 'b', 
+    old usage will utilize a tmp variable, just like :
+        tmp = a
+        a = b
+        b = tmp
+    But more pythonic usage could do it directly
+    '''
+    a = 3
+    b = 5
+    print('Value a: ',a ,' , value b: ', b)
+    a,b = b,a
+    print('Value a: ',a ,' , value b: ', b)
