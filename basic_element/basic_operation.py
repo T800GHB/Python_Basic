@@ -88,7 +88,8 @@ def Basic_loop():
         index = index + 1
         
     sum = 0
-    for item in [1,2,3,4,5,6,7,8,9,10]:
+    numbers = [1,2,3,4,5,6,7,8,9,10]
+    for item in numbers:
         sum += item
     print(sum)
     
@@ -101,7 +102,25 @@ def Basic_loop():
     #Loop with index
     for i, name in enumerate(names):
         print(i, '-->',name)
-    
+    '''
+    for-else usage
+    If iterable items are exhausted, run the clause in the scope of 'else'
+    If loop break down, the clause in the scope of 'else' will not runs
+    '''
+    def for_else(numbers):
+        for n in numbers:
+            if n < 0:
+                print('Negtive element in numbers:', n)
+                break
+            print(n)
+        else:
+            print('All number is positive')
+    #Trigger the branch of 'else'        
+    for_else(numbers)
+    #Not trigger the branch of 'else'
+    numbers[5] *= -1
+    for_else(numbers)              
+        
 def Basic_dict():
     score_dict = {'Mike':95, 'Tom':80, 'Jack':60}
     print(score_dict)
