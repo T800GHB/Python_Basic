@@ -69,14 +69,14 @@ def Basic_judge():
         print("I don't know!")
         
 def Basic_loop():
-    name = ['Nick', 'Andrew', 'Tom', 'Freeman', 'Bush']
-    for item in name:
+    names = ['Nick', 'Andrew', 'Tom', 'Freeman', 'Bush']
+    for item in names:
         print(item)
     
-    capacity = len(name)
+    capacity = len(names)
     index = 0
     while index < capacity :
-        print(name[index])
+        print(names[index])
         index = index + 1
         
     sum = 0
@@ -89,6 +89,10 @@ def Basic_loop():
     for item in sequence:
         sum += item
     print(sum)
+    
+    #Loop with index
+    for i, name in enumerate(names):
+        print(i, '-->',name)
     
 def Basic_dict():
     score_dict = {'Mike':95, 'Tom':80, 'Jack':60}
