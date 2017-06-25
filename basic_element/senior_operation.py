@@ -55,7 +55,7 @@ def iterable_justify():
     for k,v in dict_val.items():
         print(k , '=', v)
         
-def list_inference():    
+def list_comprehension():    
     num_list = [1,2,3,4,5,6,7,8,9,0]
     low_list = ['a','b','c']
     up_list = ['A','B','C']
@@ -71,6 +71,15 @@ def list_inference():
     print(result)
     result = [str1.upper() for str1 in low_list]
     print(result)
+    
+def dict_comprehension():
+    numbers = [1, 2, 3 ,4 ,5, 6]
+    num_dict = {number: number * 2 for number in numbers}
+    print(num_dict)
+    con_dict = {number: number * 2 for number in numbers if number > 1}
+    print(con_dict)
+    value_dict = {i: v + 100 for i,v in con_dict.items()}
+    print(value_dict)
     
 def generator():
     """This function will show how to use generator.
