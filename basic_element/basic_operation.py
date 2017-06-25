@@ -7,6 +7,7 @@ Created on Thu Dec 31 14:40:26 2015
 This file introduce basic element tpye and operation about it.
 At same time, some example show how use conditional desicion and loop operation.
 """
+from collections import defaultdict
 
 def Basic_Print():
     a = 1
@@ -92,28 +93,44 @@ def Basic_loop():
 def Basic_dict():
     score_dict = {'Mike':95, 'Tom':80, 'Jack':60}
     print(score_dict)
+    #If key not in dict, create a new item and assign its value
     score_dict['Nick'] = 100
     print(score_dict)
-    'Forest' in score_dict
+    #To judge if a key in this dict
+    print('Forest' in score_dict)
+    #Achive the element of dict by 'get'. 'Tom' is a item of dict
     print(score_dict.get('Tom'))
+    #Use 'get' method to return a value that a item is not in this dict
     print(score_dict.get('Forest', 3000))
-    print(score_dict.pop('Mike'))
+    #Delete a item and return its value
+    print(score_dict.pop('Mike'))\
+    #Methods : 'keys', 'items', 'values' will return a iterable view
     print(score_dict.keys())
     print(score_dict.items())
     print(score_dict.values())
+    #Create a dict from list and set its default value
     name = ['Andrew', 'Tomas', 'Forest']
-    score = [90, 90, 100]
-    pair = dict.fromkeys(name, 100)
+    pair = dict.fromkeys(name , 100)
     print(pair)
+    #Create a dict with default for every new key
+    party = defaultdict(lambda: 200)
+    party['Pony']
+    party['Frank'] += 20    
+    #Merge dict 'pair' and 'score_dict', result will store in 'pair'
     pair.update(score_dict)
-    print(pair)     
+    print(pair)    
+    #More efficient method to merge 'kid', 'pair', 'party', return new dict
+    kid = {'Coco': 30}
+    group = {**kid, **pair, **party}
+    print('Merged result:\n', group)
+    #Remove all the items of dict
     score_dict.clear()
     print(score_dict)
-    index = {1:'Mike', 2:'Nick', 3:'Tom',90: 'Matt'}
-    print(index)
-    
-    
-    
+    #Initialize key and value in dict by 'setdefault'
+    #If key in dict, do nothing, otherwise add key and set its value
+    group.setdefault('Coco', 20)
+    group.setdefault('List', []).append('list_item')
+    print(group)
     
 def Basic_set():
     type  = set(['car', 'truck', 'ambulance'])
