@@ -160,6 +160,14 @@ def Basic_assign():
     print('Value a: ',a ,' , value b: ', b)
     a,b = b,a
     print('Value a: ',a ,' , value b: ', b)
+    
+    '''
+    Sequencely unpack a tuple or list.
+    'info' is a tuple
+    '''
+    info = 'vttalk', 'female', 28, 'happy@qq.com'
+    name, gender, age, email = info
+    print(name, gender, age, email)
 
 def Basic_string():
     '''
