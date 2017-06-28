@@ -43,7 +43,7 @@ label_palette = {0: (0,0,0),
 
 collect_list = ['car','person','obstacle']
 
-bbox = namedtuple('bbox',['name', 'xmin','ymin','xmax','ymax'])
+bbox = namedtuple('bbox',['name', 'xmin','ymin','xmax','ymax', 'truncated', 'difficult'])
 
 polygon = namedtuple('polygon', ['name', 'pts'])
 
