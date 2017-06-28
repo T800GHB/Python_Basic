@@ -104,6 +104,16 @@ def append_bbox_list(obj, bbox_list, name):
     if obj.find('type') == None:
         raise TypeError('This is not bounding box object: ', name, ' id: ', obj.find('id').text)
     else:
+        occluded = obj.find('occluded').text
+        if occluded == 'yes':
+            trunc = 1
+        else:
+            trunc = 0
+        attributes = obj.find('attributes').text
+        if attributes == '1':
+            difficult = 1
+        else:
+            difficult = 0
         points = obj.find('polygon').findall('pt')
         x_list = np.empty((4,), dtype = np.int)
         y_list = np.empty((4,), dtype = np.int)
@@ -114,7 +124,7 @@ def append_bbox_list(obj, bbox_list, name):
             x_list[i] = x
             y_list[i] = y
         
-        bbox_list.append(au.bbox(name, x_list.min(), y_list.min(), x_list.max(), y_list.max()))
+        bbox_list.append(au.bbox(name, x_list.min(), y_list.min(), x_list.max(), y_list.max(), trunc, difficult))
 
 def xml_decode_bbox(filename, args, label_ref = None):
     '''
@@ -224,7 +234,7 @@ def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
     add_node(dom, root, 'filename', label_perfix + '.jpg')
     
     source_scope = create_scope(dom, root, 'source')
-    add_node(dom, source_scope, 'database', 'The ZongMu Object Detection Database')
+    add_node(dom, source_scope, 'database', 'The LabelMe Object Detection Database')
     
     size_scope = create_scope(dom, root, 'size')
     add_node(dom, size_scope, 'depth','3')
@@ -236,14 +246,18 @@ def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
     for bbox in bbox_list:
         object_scope = create_scope(dom, root, 'object')
         add_node(dom, object_scope, 'name', bbox.name)
+        add_node(dom, object_scope, 'pose', 'Unspecified')
+        add_node(dom, object_scope, 'truncated', bbox.truncated)
+        add_node(dom, object_scope, 'difficult', bbox.difficult)        
         bbox_scope = create_scope(dom, object_scope, 'bndbox')
         add_node(dom, bbox_scope, 'xmin', int(float(bbox.xmin) * ratio))
         add_node(dom, bbox_scope, 'ymin', int(float(bbox.ymin) * ratio))
         add_node(dom, bbox_scope, 'xmax', int(float(bbox.xmax) * ratio))
-        add_node(dom, bbox_scope, 'ymax', int(float(bbox.ymax) * ratio))        
+        add_node(dom, bbox_scope, 'ymax', int(float(bbox.ymax) * ratio))
+                
     
     with open(op.join(label_path, (label_perfix + '.xml')),'w') as fh:
-            dom.writexml(fh, addindent='  ', newl = '\n')        
+            dom.writexml(fh, addindent='  ', newl = '\n')           
 
 def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, args, mask_pts = None):   
     img = pi.open(op.join(image_dir, filename)).convert('RGB')
