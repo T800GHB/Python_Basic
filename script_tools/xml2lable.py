@@ -43,8 +43,9 @@ def append_polygon_dict(obj, object_dict, object_class, omit):
     points = obj.find('polygon').findall('pt')
     point_list = []
     for coor in points:
-        x = int(coor.find('x').text)
-        y = int(coor.find('y').text)            
+        #Sometimes system will generate decimals
+        x = int((coor.find('x').text).split('.')[0])
+        y = int((coor.find('y').text).split('.')[0])            
         point_list.append((x,y))
        
     item = au.polygon(name, point_list)
@@ -119,8 +120,9 @@ def append_bbox_list(obj, bbox_list, name):
         y_list = np.empty((4,), dtype = np.int)
                                   
         for i in range(4):
-            x = int(points[i].find('x').text)
-            y = int(points[i].find('y').text)            
+            #Sometimes system will generate decimals
+            x = int((points[i].find('x').text).split('.')[0])
+            y = int((points[i].find('y').text).split('.')[0])            
             x_list[i] = x
             y_list[i] = y
         
