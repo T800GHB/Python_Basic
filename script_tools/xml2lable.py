@@ -169,6 +169,7 @@ def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list):
     
     for bbox in bbox_list:        
         draw_object.rectangle((bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax), outline = au.rgb_palette[bbox.name])
+        draw_object.text((bbox.xmin, bbox.ymin), str(bbox.difficult), au.rgb_palette[bbox.name])
             
     img.save(op.join(dst_dir, filename))
 def extract_bbox(height, width, item_dict):
@@ -497,7 +498,7 @@ def bbox_generate(args):
                     copy_image(extract_dir, image_path, label_perfix + image_extension, args)  
     else:
         raise IOError('Orignal image path must be provided!')
-            
+    print('\n')
     
 if __name__ == '__main__':
     
