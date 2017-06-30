@@ -14,6 +14,7 @@ If some part will draw wiht same pattern on every image, we could set
 mask xml file to do that.
 We could call script by terminal and assign some options.
 """
+
 from xml.etree import ElementTree
 import PIL.Image as pi
 import PIL.ImageDraw as pd
@@ -25,7 +26,7 @@ import argparse
 import assist_util as au
 import xml.dom.minidom as xd
 
-def append_polygon_dict(obj, object_dict, object_class, omit):
+def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
     '''
     Store object name and polygon points into a object dict
     Data struct of object_dict{paint_layer: ['class_name', [points of polygon]], ...}
@@ -45,7 +46,15 @@ def append_polygon_dict(obj, object_dict, object_class, omit):
     for coor in points:
         #Sometimes system will generate decimals
         x = int((coor.find('x').text).split('.')[0])
-        y = int((coor.find('y').text).split('.')[0])            
+        y = int((coor.find('y').text).split('.')[0])
+        if not x < width:
+            x = width - 1
+        if not y < height:
+            y = height - 1
+        if x < 0:
+            x = 0
+        if y < 0:
+            y = 0            
         point_list.append((x,y))
        
     item = au.polygon(name, point_list)
@@ -79,14 +88,14 @@ def xml_decode_polygon(filename, args, label_ref = None):
                 object_class = obj.find('name').text
                 if label_ref != None:
                     if au.gray_palette[object_class][0] in label_ref:
-                        append_polygon_dict(obj, object_dict, object_class, args.omit)  
+                        append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)  
                     else:
                         if object_class == 'bump':
-                            append_polygon_dict(obj, object_dict, 'road', omit = 0)    
+                            append_polygon_dict(obj, object_dict, 'road', width, height, omit = 0)    
                         else:                        
-                            append_polygon_dict(obj, object_dict, 'background', omit = 0)       
+                            append_polygon_dict(obj, object_dict, 'background', width, height, omit = 0)       
                 else:
-                    append_polygon_dict(obj, object_dict, object_class, args.omit)            
+                    append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)            
                         
             else:
                 pass
@@ -98,7 +107,7 @@ def xml_decode_polygon(filename, args, label_ref = None):
                     
     return object_dict, width, height
 
-def append_bbox_list(obj, bbox_list, name):
+def append_bbox_list(obj, bbox_list, name, width, height):
     '''
     Load bounding box information from xml file and append to the list
     '''
@@ -122,7 +131,15 @@ def append_bbox_list(obj, bbox_list, name):
         for i in range(4):
             #Sometimes system will generate decimals
             x = int((points[i].find('x').text).split('.')[0])
-            y = int((points[i].find('y').text).split('.')[0])            
+            y = int((points[i].find('y').text).split('.')[0]) 
+            if not x < width:
+                x = width - 1
+            if not y < height:
+                y = height - 1
+            if x < 0:
+                x = 0
+            if y < 0:
+                y = 0
             x_list[i] = x
             y_list[i] = y
         
@@ -146,11 +163,11 @@ def xml_decode_bbox(filename, args, label_ref = None):
                 name = obj.find('name').text
                 if label_ref != None:
                     if au.gray_palette[name][0] in label_ref:
-                        append_bbox_list(obj, bbox_list, name)
+                        append_bbox_list(obj, bbox_list, name, width, height)
                     else:
                         pass
                 else:
-                     append_bbox_list(obj, bbox_list, name)
+                     append_bbox_list(obj, bbox_list, name, width, height)
             else:
                 pass     
             
@@ -166,12 +183,13 @@ def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list):
     
     img = pi.open(op.join(image_dir, filename)).convert('RGB')        
     draw_object = pd.Draw(img)
-    
+        
     for bbox in bbox_list:        
         draw_object.rectangle((bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax), outline = au.rgb_palette[bbox.name])
         draw_object.text((bbox.xmin, bbox.ymin), str(bbox.difficult), au.rgb_palette[bbox.name])
             
     img.save(op.join(dst_dir, filename))
+
 def extract_bbox(height, width, item_dict):
     #convert store format, because paint layer does not make senes for bounding box
     bbox_list = []
@@ -240,9 +258,9 @@ def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
     add_node(dom, source_scope, 'database', 'The LabelMe Object Detection Database')
     
     size_scope = create_scope(dom, root, 'size')
-    add_node(dom, size_scope, 'depth','3')
-    add_node(dom, size_scope, 'height', height)
     add_node(dom, size_scope, 'width', width)
+    add_node(dom, size_scope, 'height', height)
+    add_node(dom, size_scope, 'depth','3')
     
     ratio = args.size
     
@@ -260,7 +278,7 @@ def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
                 
     
     with open(op.join(label_path, (label_perfix + '.xml')),'w') as fh:
-            dom.writexml(fh, addindent='  ', newl = '\n')           
+            dom.writexml(fh, addindent='  ', newl = '\n')        
 
 def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, args, mask_pts = None):   
     img = pi.open(op.join(image_dir, filename)).convert('RGB')
@@ -498,7 +516,8 @@ def bbox_generate(args):
                     copy_image(extract_dir, image_path, label_perfix + image_extension, args)  
     else:
         raise IOError('Orignal image path must be provided!')
-    print('\n')
+    
+    print('\n')            
     
 if __name__ == '__main__':
     
