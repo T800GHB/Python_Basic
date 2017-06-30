@@ -160,7 +160,7 @@ def xml_decode_bbox(filename, args, label_ref = None):
         height = width = 0
         bbox_list = []
         
-    return bbox_list, height, width
+    return bbox_list, width, height
 
 def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list):
     
