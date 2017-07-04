@@ -60,15 +60,15 @@ def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
     item = au.polygon(name, point_list)
     
     layer_attribute = obj.find('attributes').text
-    if layer_attribute == None:
-        pass
-    else:            
+    if layer_attribute:
         paint_layer = int(layer_attribute)
-        if paint_layer in object_dict.keys():
+        if paint_layer in object_dict:
             object_dict[paint_layer].append(item)
         else:
             object_dict[paint_layer] = []                    
             object_dict[paint_layer].append(item)
+    else:            
+        pass
 
 def xml_decode_polygon(filename, args, label_ref = None):
     '''
@@ -86,19 +86,16 @@ def xml_decode_polygon(filename, args, label_ref = None):
         for obj in list_object:               
             if obj.find('deleted').text != '1':
                 object_class = obj.find('name').text
-                if label_ref != None:
+                if label_ref:
                     if au.gray_palette[object_class][0] in label_ref:
                         append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)  
-                    else:
-                        if object_class == 'bump':
-                            append_polygon_dict(obj, object_dict, 'road', width, height, omit = 0)    
-                        else:                        
-                            append_polygon_dict(obj, object_dict, 'background', width, height, omit = 0)       
+                    elif object_class == 'bump':
+                        append_polygon_dict(obj, object_dict, 'road', width, height, omit = 0)    
+                    else:                        
+                        append_polygon_dict(obj, object_dict, 'background', width, height, omit = 0)       
                 else:
                     append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)            
-                        
-            else:
-                pass
+
     except Exception as e:
         print('Xml file : '  ,filename, ' load error happened : ', e)    
 #        image_name = None
@@ -128,10 +125,10 @@ def append_bbox_list(obj, bbox_list, name, width, height):
         x_list = np.empty((4,), dtype = np.int)
         y_list = np.empty((4,), dtype = np.int)
                                   
-        for i in range(4):
+        for i , pts in enumerate(points):
             #Sometimes system will generate decimals
-            x = int((points[i].find('x').text).split('.')[0])
-            y = int((points[i].find('y').text).split('.')[0]) 
+            x = int((pts.find('x').text).split('.')[0])
+            y = int((pts.find('y').text).split('.')[0]) 
             if not x < width:
                 x = width - 1
             if not y < height:
@@ -145,7 +142,7 @@ def append_bbox_list(obj, bbox_list, name, width, height):
         
         bbox_list.append(au.bbox(name, x_list.min(), y_list.min(), x_list.max(), y_list.max(), trunc, difficult))
 
-def xml_decode_bbox(filename, args, label_ref = None):
+def xml_decode_bbox(filename, args):
     '''
     Read object bounding box information from xml file
     '''
@@ -161,15 +158,10 @@ def xml_decode_bbox(filename, args, label_ref = None):
         for obj in list_object:
             if obj.find('deleted').text != '1':
                 name = obj.find('name').text
-                if label_ref != None:
-                    if au.gray_palette[name][0] in label_ref:
-                        append_bbox_list(obj, bbox_list, name, width, height)
-                    else:
-                        pass
+                if name in au.collect_list:
+                    append_bbox_list(obj, bbox_list, name, width, height)
                 else:
-                     append_bbox_list(obj, bbox_list, name, width, height)
-            else:
-                pass     
+                    raise IOError('Invalid name: ', name)    
             
     except Exception as e:
         print('Xml file : '  ,filename, ' load error happened : ', e)    
@@ -240,16 +232,11 @@ def create_scope(dom, root_scope, scope = 'None'):
     root_scope.appendChild(scope)
     return scope
 
-def init_xml(name = 'None'):
+def init_xml(name = 'None', height = 0, width = 0, label_perfix = 'None'):
     #Initialize a new xml element tree for writing in it
     impl = xd.getDOMImplementation()
     dom = impl.createDocument(None, name, None)
     root = dom.documentElement
-    return dom, root
-                
-def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
-    #Create a xml file and write all objects information into it.
-    dom, root = init_xml('annotation')
     
     add_node(dom, root, 'folder', 'VOC2012')
     add_node(dom, root, 'filename', label_perfix + '.jpg')
@@ -262,21 +249,30 @@ def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
     add_node(dom, size_scope, 'height', height)
     add_node(dom, size_scope, 'depth','3')
     
+    return dom, root
+
+def append_xml_info(dom, root, bbox, ratio):
+    #Append same pattern information into xml file
+    object_scope = create_scope(dom, root, 'object')
+    add_node(dom, object_scope, 'name', bbox.name)
+    add_node(dom, object_scope, 'pose', 'Unspecified')
+    add_node(dom, object_scope, 'truncated', bbox.truncated)
+    add_node(dom, object_scope, 'difficult', bbox.difficult)        
+    bbox_scope = create_scope(dom, object_scope, 'bndbox')
+    add_node(dom, bbox_scope, 'xmin', int(float(bbox.xmin) * ratio))
+    add_node(dom, bbox_scope, 'ymin', int(float(bbox.ymin) * ratio))
+    add_node(dom, bbox_scope, 'xmax', int(float(bbox.xmax) * ratio))
+    add_node(dom, bbox_scope, 'ymax', int(float(bbox.ymax) * ratio))
+            
+def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
+    #Create a xml file and write all objects information into it.
+    dom, root = init_xml('annotation', height, width, label_perfix)    
+    
     ratio = args.size
     
     for bbox in bbox_list:
-        object_scope = create_scope(dom, root, 'object')
-        add_node(dom, object_scope, 'name', bbox.name)
-        add_node(dom, object_scope, 'pose', 'Unspecified')
-        add_node(dom, object_scope, 'truncated', bbox.truncated)
-        add_node(dom, object_scope, 'difficult', bbox.difficult)        
-        bbox_scope = create_scope(dom, object_scope, 'bndbox')
-        add_node(dom, bbox_scope, 'xmin', int(float(bbox.xmin) * ratio))
-        add_node(dom, bbox_scope, 'ymin', int(float(bbox.ymin) * ratio))
-        add_node(dom, bbox_scope, 'xmax', int(float(bbox.xmax) * ratio))
-        add_node(dom, bbox_scope, 'ymax', int(float(bbox.ymax) * ratio))
-                
-    
+        append_xml_info(dom, root, bbox, ratio)
+           
     with open(op.join(label_path, (label_perfix + '.xml')),'w') as fh:
             dom.writexml(fh, addindent='  ', newl = '\n')        
 
@@ -304,7 +300,7 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, args, ma
                     draw_img.line(points, fill = au.rgb_palette['ignore'], width = args.linewidth)
                 else:
                     pass
-        if mask_pts is not None:
+        if mask_pts:
             draw_img.polygon(mask_pts, fill = au.rgb_palette['ignore'])
         img.save(op.join(dst_dir, filename))
         return img 
@@ -329,7 +325,7 @@ def create_label(image_name, folder, item_dict, width, height,
             else:
                 pass
         
-    if mask_pts is not None:
+    if mask_pts:
         draw_label.polygon(mask_pts, fill = au.gray_palette['ignore'])
         
     label.mode = 'P'
@@ -385,13 +381,12 @@ def init_generate(args):
     dirlist = os.listdir(xml_dir)    
     files = [x for x in dirlist if op.isfile(op.join(xml_dir,x))]
     assign_palette = au.create_png_palette()
-    if args.mask is None:
-        mask = None
-    else:
-        #Second return val, first paint layer, first polygon
+    if args.mask:
         mask = (xml_decode_polygon(mask_file, args)[0][0][0]).pts 
+    else:        
+        mask = None
     
-    if args.reference != None:        
+    if args.reference:        
         str_index = args.reference
         try:
             label_index = str_index.split(',')
@@ -402,19 +397,13 @@ def init_generate(args):
             exit()
     else:
         label_ref = None
-
-    image_path = args.images
     
-    if image_path == None:
-        check_dir = None
-        extract_dir = None
-        images = []
-    else:
-        if not op.exists(image_path):
-            raise IOError('No such directory contained images named: ', image_path)
+    if args.images:
+        if not op.exists(args.images):
+            raise IOError('No such directory contained images named: ', args.images)
         else:
-            image_list = os.listdir(image_path)
-            images = [x for x in image_list if op.isfile(op.join(image_path,x))]            
+            image_list = os.listdir(args.images)
+            images = [x for x in image_list if op.isfile(op.join(args.images,x))]            
             if len(images):                
                 check_dir = op.join(work_dir, (orignal_dir + '_check'))                
                 if op.exists(check_dir):
@@ -431,11 +420,14 @@ def init_generate(args):
                 else:
                     os.makedirs(extract_dir)
             else:
-                print('Image directory is empty!!!!')       
-                
+                print('Image directory is empty!!!!')        
+    else:
+        check_dir = None
+        extract_dir = None
+        images = []               
     
     return (xml_dir, work_dir, orignal_dir, label_dir, files, assign_palette, mask,
-            image_path, check_dir, extract_dir, images, label_ref)
+            args.images, check_dir, extract_dir, images, label_ref)
 
 def label_generate(args):
 
@@ -492,7 +484,7 @@ def bbox_generate(args):
     elif args.bndbox == 2:
         #From bounding box
         def xml_decode(xml_file_name, args, label_ref):
-            bbox_list, width, height = xml_decode_bbox(xml_file_name, args, label_ref)
+            bbox_list, width, height = xml_decode_bbox(xml_file_name, args)
             return bbox_list, width, height
     else:
         raise ValueError('Specify a invalid method type: args - ', args.bndbox)
