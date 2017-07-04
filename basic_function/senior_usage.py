@@ -133,8 +133,32 @@ def fun_name(func):
 def now():
     print('2016-2-2')
     
+def check_info(func):
+    def warp(age, weight, height):
+        if type(age) != int:
+            raise IOError('Age with incorrect format')
+        if 100 < weight :
+            raise IOError('Weight out of range')
+        if 300 < height:
+            raise IOError('Height out of range')
+        return func(age, weight, height)
+    return warp
+
+@check_info    
+def health_index(age, weight, height):
+    value = age * height / weight
+    print('Age: ', age, ' weight: ', weight, ' height: ',height, 
+          ' health index: ', value)
+    
+    
 def decorator_fun():
     now()
+    health_index(30, 50, 170)
+    '''
+    Below cases will cause error
+    health_index('20',20,140)
+    health_index(20, 70, 500)
+    '''
     
 import functools
 
@@ -152,14 +176,3 @@ def partial_func():
     int2 = functools.partial(int, base = 2)
     res = int2('10010100')
     print('The result convert by int2 is :', res)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    

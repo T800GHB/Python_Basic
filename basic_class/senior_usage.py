@@ -55,7 +55,11 @@ class car(object):
     @property
     def brandmark(self):
         return self.__brandmark
-        
+    
+    #Make a method belong to this calss
+    @classmethod
+    def weight_load(ex_weight):
+        print('I do not know')
 """
 This is a enum class, @unique decorator will make sure there is no repeated
 element.
@@ -121,7 +125,7 @@ def run_demo():
     print('The horsepower of car is :', c.horsepower)
     #This will also call __getattr__, but it will raise an error.
     #print('The type of car is :', c.type)    
-    
+    c.weight_load()    
     #Define a object that is enum element
     day = Weekday.Mon
     print('Enum element :',day)
@@ -129,6 +133,3 @@ def run_demo():
     print('Object and Enum element :', day == Weekday.Mon)
     print('Enum element index as name', Weekday['Tue'])
     print('Enum element value index as name', Weekday['Tue'].value)
-    
-    
-    
