@@ -26,6 +26,20 @@ import argparse
 import assist_util as au
 import xml.dom.minidom as xd
 
+def convert_point(pt, width, height):
+    #Sometimes system will generate decimals
+    x = int((pt.find('x').text).split('.')[0])
+    y = int((pt.find('y').text).split('.')[0])
+    if not x < width:
+        x = width - 1
+    if not y < height:
+        y = height - 1
+    if x < 0:
+        x = 0
+    if y < 0:
+        y = 0
+    return x, y
+
 def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
     '''
     Store object name and polygon points into a object dict
@@ -42,20 +56,8 @@ def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
         name = object_class
     
     points = obj.find('polygon').findall('pt')
-    point_list = []
-    for coor in points:
-        #Sometimes system will generate decimals
-        x = int((coor.find('x').text).split('.')[0])
-        y = int((coor.find('y').text).split('.')[0])
-        if not x < width:
-            x = width - 1
-        if not y < height:
-            y = height - 1
-        if x < 0:
-            x = 0
-        if y < 0:
-            y = 0            
-        point_list.append((x,y))
+    
+    point_list = [convert_point(pt, width, height) for pt in points]
        
     item = au.polygon(name, point_list)
     
@@ -122,25 +124,11 @@ def append_bbox_list(obj, bbox_list, name, width, height):
         else:
             difficult = 0
         points = obj.find('polygon').findall('pt')
-        x_list = np.empty((4,), dtype = np.int)
-        y_list = np.empty((4,), dtype = np.int)
-                                  
-        for i , pts in enumerate(points):
-            #Sometimes system will generate decimals
-            x = int((pts.find('x').text).split('.')[0])
-            y = int((pts.find('y').text).split('.')[0]) 
-            if not x < width:
-                x = width - 1
-            if not y < height:
-                y = height - 1
-            if x < 0:
-                x = 0
-            if y < 0:
-                y = 0
-            x_list[i] = x
-            y_list[i] = y
+        point_list = [convert_point(pt, width, height) for pt in points]
+        xmin, ymin = np.min(point_list, axis = 0)
+        xmax, ymax = np.max(point_list, axis = 0)
         
-        bbox_list.append(au.bbox(name, x_list.min(), y_list.min(), x_list.max(), y_list.max(), trunc, difficult))
+        bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax, trunc, difficult))
 
 def xml_decode_bbox(filename, args):
     '''
