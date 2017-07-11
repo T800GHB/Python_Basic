@@ -198,8 +198,22 @@ def display(name = 'Anonymous'):
         return warper
     return decorator
 
-def display2(dec = None, name = 'Anonymous'):
-    print('xxxxxx', dec)
+
+def display_compatible(dec = None, name = 'Anonymous'):
+    '''
+    This decorator could be used as:
+        @display_compatible
+        @display_compatible()
+        @display_compatible(name = 'Andrew')
+    But not like this:
+        @display_compatible('Andrew')
+        Must send a keyword argument
+    The principle behind this is:
+        If use @display_compatible, the first argument will be the 
+        function that pass into decorator.
+        If use append callable symbol ()behind @display_compatible,
+        the arguments passed into just like normal function
+    '''
     if dec and name != 'Anonymous':
         raise
     def decorator(func):
@@ -210,12 +224,49 @@ def display2(dec = None, name = 'Anonymous'):
             return func
         return warper
     if dec:
-        return decorator
-    else:
+        print('First argument: ', dec, ' and its name: ', dec.__name__)
         return decorator(dec)
-   
+    else:
+        print('First argument: ',dec)
+        return decorator
+        
+def compatible_wrap(func):
+    '''
+    a decorator of decorator, allowing the decorator to be used as:
+    @decorator(with, arguments, and=kwargs) or @decorator
+    '''
+    @functools.wraps(func)
+    def new_dec(*args, **kwargs):
+        if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
+            # actual decorated function
+            return func(args[0])
+        else:
+            # decorator arguments   
+            return lambda realf: func(realf, *args, **kwargs)
+            
+    return new_dec
 
-@display2(name = 'Andrew')
+@compatible_wrap
+def display_flexible(func, name = 'Nobody'):
+    @functools.wraps(func)
+    def warper(*args, **kw):
+        print(name, ' call method: ', func.__name__)
+        func(*args, **kw)
+        return func
+    return warper
+       
+'''
+Optional decorator
+@display_compatible
+@display_compatible()
+@display_compatible(name = 'Jack')
+@display_flexible
+@display_flexible()
+@display_flexible('Tom')
+@display_flexible(name = 'Tom')
+'''
+#@display('Andrew')
+@display_flexible('Tom')
 def current_time():
     print('Current time: ', datetime.now())
     
