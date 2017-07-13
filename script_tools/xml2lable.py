@@ -15,343 +15,21 @@ mask xml file to do that.
 We could call script by terminal and assign some options.
 """
 
-from xml.etree import ElementTree
-import PIL.Image as pi
-import PIL.ImageDraw as pd
-import numpy as np
 import os
 import os.path as op
 import shutil
 import argparse
 import assist_util as au
-import xml.dom.minidom as xd
-
-def convert_point(pt, width, height):
-    #Sometimes system will generate decimals
-    x = int((pt.find('x').text).split('.')[0])
-    y = int((pt.find('y').text).split('.')[0])
-    if not x < width:
-        x = width - 1
-    if not y < height:
-        y = height - 1
-    if x < 0:
-        x = 0
-    if y < 0:
-        y = 0
-    return x, y
-
-def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
-    '''
-    Store object name and polygon points into a object dict
-    Data struct of object_dict{paint_layer: ['class_name', [points of polygon]], ...}
-    If there a more than one region in same paint layer, data struct will be :
-        object_dict{paint_layer: [['class_name', [points of region 1]],['class_name',[points of region 2]]], ...}
-    '''
-    item = []
+import xml_write as xw
+import xml_read as xr
+import draw_mark as dm
     
-    occluded = obj.find('occluded').text
-    if occluded == 'yes' and omit == 1:
-        name = 'ignore'
-    else:
-        name = object_class
-    
-    points = obj.find('polygon').findall('pt')
-    
-    point_list = [convert_point(pt, width, height) for pt in points]
-       
-    item = au.polygon(name, point_list)
-    
-    layer_attribute = obj.find('attributes').text
-    if layer_attribute:
-        paint_layer = int(layer_attribute)
-        if paint_layer in object_dict:
-            object_dict[paint_layer].append(item)
-        else:
-            object_dict[paint_layer] = []                    
-            object_dict[paint_layer].append(item)
-    else:            
-        pass
-
-def xml_decode_polygon(filename, args, label_ref = None):
-    '''
-    Read object polygon information from xml file
-    '''
-    try:
-        file_root = ElementTree.parse(filename)
-#        image_name = file_root.find('filename').text    
-        image_size = file_root.find('imagesize')
-        width = int(image_size.find('ncols').text)
-        height = int(image_size.find('nrows').text)        
-        list_object = file_root.findall('object')
-        object_dict = {}
-        
-        for obj in list_object:               
-            if obj.find('deleted').text != '1':
-                object_class = obj.find('name').text
-                if label_ref:
-                    if au.gray_palette[object_class][0] in label_ref:
-                        append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)  
-                    elif object_class == 'bump':
-                        append_polygon_dict(obj, object_dict, 'road', width, height, omit = 0)    
-                    else:                        
-                        append_polygon_dict(obj, object_dict, 'background', width, height, omit = 0)       
-                else:
-                    append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)            
-
-    except Exception as e:
-        print('Xml file : '  ,filename, ' load error happened : ', e)    
-#        image_name = None
-        height = width = 0
-        object_dict = {}       
-                    
-    return object_dict, width, height
-
-def append_bbox_list(obj, bbox_list, name, width, height):
-    '''
-    Load bounding box information from xml file and append to the list
-    '''
-    if obj.find('type') == None:
-        raise TypeError('This is not bounding box object: ', name, ' id: ', obj.find('id').text)
-    else:
-        occluded = obj.find('occluded').text
-        if occluded == 'yes':
-            trunc = 1
-        else:
-            trunc = 0
-        attributes = obj.find('attributes').text
-        if attributes == '1':
-            difficult = 1
-        else:
-            difficult = 0
-        points = obj.find('polygon').findall('pt')
-        point_list = [convert_point(pt, width, height) for pt in points]
-        xmin, ymin = np.min(point_list, axis = 0)
-        xmax, ymax = np.max(point_list, axis = 0)
-        
-        bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax, trunc, difficult))
-
-def xml_decode_bbox(filename, args):
-    '''
-    Read object bounding box information from xml file
-    '''
-    try:
-        file_root = ElementTree.parse(filename)
-#        image_name = file_root.find('filename').text    
-        image_size = file_root.find('imagesize')
-        width = int(image_size.find('ncols').text)
-        height = int(image_size.find('nrows').text)
-        list_object = file_root.findall('object')      
-        bbox_list = []
-
-        for obj in list_object:
-            if obj.find('deleted').text != '1':
-                name = obj.find('name').text
-                if name in au.collect_list:
-                    append_bbox_list(obj, bbox_list, name, width, height)
-                else:
-                    raise IOError('Invalid name: ', name)    
-            
-    except Exception as e:
-        print('Xml file : '  ,filename, ' load error happened : ', e)    
-#        image_name = None
-        height = width = 0
-        bbox_list = []
-        
-    return bbox_list, width, height
-
-def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list):
-    
-    img = pi.open(op.join(image_dir, filename)).convert('RGB')        
-    draw_object = pd.Draw(img)
-        
-    for bbox in bbox_list:        
-        draw_object.rectangle((bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax), outline = au.rgb_palette[bbox.name])
-        draw_object.text((bbox.xmin, bbox.ymin), str(bbox.difficult), au.rgb_palette[bbox.name])
-            
-    img.save(op.join(dst_dir, filename))
-
-def extract_bbox(height, width, item_dict):
-    #convert store format, because paint layer does not make senes for bounding box
-    bbox_list = []
-    if item_dict:
-        item_keys = list(item_dict.keys())
-        item_keys.sort()
-        for k in item_keys:            
-            
-            name = None
-            xmin = width
-            ymin = height
-            xmax = 0
-            ymax = 0
-            for part in item_dict[k]:
-                
-                tmp_name = part.name
-                
-                if tmp_name in au.collect_list:
-                    name = tmp_name                    
-                    points = part.pts                                        
-                    np_pts = np.array(points)
-                    tmp_min = np.min(np_pts, axis = 0)
-                    tmp_max = np.max(np_pts, axis = 0)
-                    if tmp_min[0] < xmin:
-                        xmin = tmp_min[0]
-                    if tmp_min[1] < ymin:
-                        ymin = tmp_min[1]
-                    if xmax < tmp_max[0]:
-                        xmax = tmp_max[0]
-                    if ymax < tmp_max[1]:
-                        ymax = tmp_max[1]
-            if name:
-                bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax))
-            
-    return bbox_list
-
-def add_node(dom, scope, node = 'None', value = '0'):
-    #Create a new name scope and assign its value for xml element tree
-    node_path = dom.createElement(node)
-    node_value = dom.createTextNode(str(value))
-    scope.appendChild(node_path)
-    node_path.appendChild(node_value)
-    
-
-def create_scope(dom, root_scope, scope = 'None'):
-    #Only create a new name scope
-    scope = dom.createElement(scope)
-    root_scope.appendChild(scope)
-    return scope
-
-def init_xml(name = 'None', height = 0, width = 0, label_perfix = 'None'):
-    #Initialize a new xml element tree for writing in it
-    impl = xd.getDOMImplementation()
-    dom = impl.createDocument(None, name, None)
-    root = dom.documentElement
-    
-    add_node(dom, root, 'folder', 'VOC2012')
-    add_node(dom, root, 'filename', label_perfix + '.jpg')
-    
-    source_scope = create_scope(dom, root, 'source')
-    add_node(dom, source_scope, 'database', 'The LabelMe Object Detection Database')
-    
-    size_scope = create_scope(dom, root, 'size')
-    add_node(dom, size_scope, 'width', width)
-    add_node(dom, size_scope, 'height', height)
-    add_node(dom, size_scope, 'depth','3')
-    
-    return dom, root
-
-def append_xml_info(dom, root, bbox, ratio):
-    #Append same pattern information into xml file
-    object_scope = create_scope(dom, root, 'object')
-    add_node(dom, object_scope, 'name', bbox.name)
-    add_node(dom, object_scope, 'pose', 'Unspecified')
-    add_node(dom, object_scope, 'truncated', bbox.truncated)
-    add_node(dom, object_scope, 'difficult', bbox.difficult)        
-    bbox_scope = create_scope(dom, object_scope, 'bndbox')
-    add_node(dom, bbox_scope, 'xmin', int(float(bbox.xmin) * ratio))
-    add_node(dom, bbox_scope, 'ymin', int(float(bbox.ymin) * ratio))
-    add_node(dom, bbox_scope, 'xmax', int(float(bbox.xmax) * ratio))
-    add_node(dom, bbox_scope, 'ymax', int(float(bbox.ymax) * ratio))
-            
-def create_bbox(bbox_list, label_path, height, width, label_perfix, args):
-    #Create a xml file and write all objects information into it.
-    dom, root = init_xml('annotation', height, width, label_perfix)    
-    
-    ratio = args.size
-    
-    for bbox in bbox_list:
-        append_xml_info(dom, root, bbox, ratio)
-           
-    with open(op.join(label_path, (label_perfix + '.xml')),'w') as fh:
-            dom.writexml(fh, addindent='  ', newl = '\n')        
-
-def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, args, mask_pts = None):   
-    img = pi.open(op.join(image_dir, filename)).convert('RGB')
-    if args.transparent:
-        attach_image = label_image.convert('RGB')
-        blend_image = pi.blend(img, attach_image, args.alpha)
-        blend_image.save(op.join(dst_dir, filename))  
-        return blend_image
-    else:
-        draw_img = pd.Draw(img, 'RGB') 
-        item_keys = list(item_dict.keys())
-        item_keys.sort()       
-        for i in item_keys:
-            for part in item_dict[i]:
-                name = part.name
-                points = part.pts
-                try:
-                    draw_img.polygon(points, fill = au.rgb_palette[name])
-                except KeyError as e:
-                    print('KeyError: ', e, ', happen with file: ', filename)
-                if args.linewidth:
-                    points.append(points[0])
-                    draw_img.line(points, fill = au.rgb_palette['ignore'], width = args.linewidth)
-                else:
-                    pass
-        if mask_pts:
-            draw_img.polygon(mask_pts, fill = au.rgb_palette['ignore'])
-        img.save(op.join(dst_dir, filename))
-        return img 
-    
-def create_label(image_name, folder, item_dict, width, height, 
-                 assign_palette,  args, mask_pts = None):
-    label = pi.new(mode = 'L', size = (width, height), color = (0,))
-    draw_label = pd.Draw(label, 'L')     
-    item_keys = list(item_dict.keys())
-    item_keys.sort()
-    for i in item_keys:
-        for part in item_dict[i]:
-            name = part.name
-            points = part.pts
-            try:
-                draw_label.polygon(points, fill = au.gray_palette[name])
-            except KeyError as e:
-                    print('\nKeyError: ', e, ', happen with file: ', image_name)
-            if args.linewidth and name != 'background':
-                points.append(points[0])
-                draw_label.line(points, fill = au.gray_palette['ignore'], width = args.linewidth)
-            else:
-                pass
-        
-    if mask_pts:
-        draw_label.polygon(mask_pts, fill = au.gray_palette['ignore'])
-        
-    label.mode = 'P'
-    label.putpalette(assign_palette)
-    extension = '.png'
-    label_name = image_name + extension
-    if args.size != 1.0:
-        re_height = int(args.size * float(height))
-        re_width = int(args.size * float(width))
-        final_label = label.resize((re_width, re_height), pi.NEAREST)
-    else:
-        final_label = label
-    final_label.save(op.join(folder, label_name))
-    
-    return label
-
-def copy_image(extract_dir, image_path, image_name, args):
-    #Copy the orignal image or reize it than store at specific location
-    if args.size != 1.0:
-        org_img = pi.open(op.join(image_path, image_name))
-        re_height = int(args.size * float(org_img.height))
-        re_width = int(args.size * float(org_img.width))
-        resize_img = org_img.resize((re_width, re_height), pi.ANTIALIAS)
-        resize_img.save(op.join(extract_dir,image_name))
-    else:
-        shutil.copy(op.join(image_path, image_name), extract_dir)
-
 def init_generate(args):
     xml_dir = args.dir
-    if xml_dir == None:
-        raise IOError('Xml direcotry must be specified')
-    if not op.exists(xml_dir):
-        raise IOError('No such directory contained xml named: ', xml_dir)
         
-    mask_file = args.mask
-    work_dir = op.join(os.getcwd(),'result')
-    if not op.exists(work_dir):
-        os.mkdir(work_dir)
+    result_dir = op.join(os.getcwd(),'result')
+    if not op.exists(result_dir):
+        os.mkdir(result_dir)
         
     path_fraction = xml_dir.split('/')
     if path_fraction[-1] == '':
@@ -359,7 +37,7 @@ def init_generate(args):
     else:
         orignal_dir = path_fraction[-1]
     
-    label_dir = op.join(work_dir, (orignal_dir + '_label'))
+    label_dir = op.join(result_dir, (orignal_dir + '_label'))
     if op.exists(label_dir):
         shutil.rmtree(label_dir)
         os.makedirs(label_dir)
@@ -369,8 +47,10 @@ def init_generate(args):
     dirlist = os.listdir(xml_dir)    
     files = [x for x in dirlist if op.isfile(op.join(xml_dir,x))]
     assign_palette = au.create_png_palette()
+    
+    mask_file = args.mask
     if args.mask:
-        mask = (xml_decode_polygon(mask_file, args)[0][0][0]).pts 
+        mask = (xr.xml_decode_polygon(mask_file, args)[0][0][0]).pts 
     else:        
         mask = None
     
@@ -393,14 +73,14 @@ def init_generate(args):
             image_list = os.listdir(args.images)
             images = [x for x in image_list if op.isfile(op.join(args.images,x))]            
             if len(images):                
-                check_dir = op.join(work_dir, (orignal_dir + '_check'))                
+                check_dir = op.join(result_dir, (orignal_dir + '_check'))                
                 if op.exists(check_dir):
                     shutil.rmtree(check_dir)
                     os.makedirs(check_dir)
                 else:
                     os.makedirs(check_dir)
                 #Copy labeled images to new directory
-                extract_dir = op.join(work_dir, (orignal_dir + '_extract'))
+                extract_dir = op.join(result_dir, (orignal_dir + '_extract'))
                 
                 if op.exists(extract_dir):
                     shutil.rmtree(extract_dir)
@@ -412,14 +92,14 @@ def init_generate(args):
     else:
         check_dir = None
         extract_dir = None
-        images = []               
+        images = []              
     
-    return (xml_dir, work_dir, orignal_dir, label_dir, files, assign_palette, mask,
+    return (xml_dir, label_dir, files, assign_palette, mask,
             args.images, check_dir, extract_dir, images, label_ref)
 
 def label_generate(args):
 
-    (xml_dir, work_dir, orignal_dir, label_dir, labels, assign_palette, mask, 
+    (xml_dir, label_dir, labels, assign_palette, mask, 
      image_path, check_dir, extract_dir, images, label_ref) = init_generate(args)
    
     bar_worker = au.process_bar(num_items= len(labels))
@@ -428,11 +108,11 @@ def label_generate(args):
         for f in labels:
             xml_file_name = op.join(xml_dir, f)
             
-            object_dict, width, height = xml_decode_polygon(xml_file_name, args, label_ref)
+            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args, label_ref)
             label_perfix = op.splitext(f)[0] 
             bar_worker.update()
             if object_dict:
-                create_label(label_perfix, label_dir, object_dict, 
+                dm.create_label(label_perfix, label_dir, object_dict, 
                          width, height, assign_palette,  args, mask_pts = mask)
     else: 
         num_image = len(images)
@@ -442,22 +122,21 @@ def label_generate(args):
                 
         for f in labels:
             xml_file_name = op.join(xml_dir, f)    
-            object_dict, width, height = xml_decode_polygon(xml_file_name, args, label_ref)
+            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args.omit, label_ref)
             label_perfix = op.splitext(f)[0] 
             bar_worker.update()
             if object_dict:
-                label = create_label(label_perfix, label_dir, object_dict, 
+                label = dm.create_label(label_perfix, label_dir, object_dict, 
                              width, height, assign_palette, args, mask_pts = mask)                          
                 
                 if num_image and (label_perfix in images_perfix_list):
-                    draw_on_image(label_perfix + image_extension, image_path,
-                    check_dir, label, object_dict, args, mask)                    
-
-                    copy_image(extract_dir, image_path, label_perfix + image_extension, args)    
+                    dm.draw_on_image(label_perfix + image_extension, image_path,
+                    check_dir, label, object_dict, args, mask)
+                    au.copy_image(extract_dir, image_path, label_perfix + image_extension, args.size)    
     print('\n')
 
 def bbox_generate(args):
-    (xml_dir, work_dir, orignal_dir, label_dir, labels, assign_palette, mask, 
+    (xml_dir, label_dir, labels, assign_palette, mask, 
      image_path, check_dir, extract_dir, images, label_ref) = init_generate(args)
     
     bar_worker = au.process_bar(num_items= len(labels))
@@ -465,14 +144,14 @@ def bbox_generate(args):
     #Define a inner function for different data source
     if args.bndbox == 1:
         #From polygon
-        def xml_decode(xml_file_name, args, label_ref):
-            object_dict, width, height = xml_decode_polygon(xml_file_name, args, label_ref)
-            bbox_list = extract_bbox(height, width, object_dict)
+        def xml_decode(xml_file_name, args):
+            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args.omit)
+            bbox_list = xr.extract_bbox(height, width, object_dict)
             return bbox_list, height, width
     elif args.bndbox == 2:
         #From bounding box
-        def xml_decode(xml_file_name, args, label_ref):
-            bbox_list, width, height = xml_decode_bbox(xml_file_name, args)
+        def xml_decode(xml_file_name, args):
+            bbox_list, width, height = xr.xml_decode_bbox(xml_file_name, args.palette, args.fov)
             return bbox_list, width, height
     else:
         raise ValueError('Specify a invalid method type: args - ', args.bndbox)
@@ -484,16 +163,19 @@ def bbox_generate(args):
             image_extension = op.splitext(images[0])[1]        
         for f in labels:
             xml_file_name = op.join(xml_dir, f)  
-            bbox_list, width, height = xml_decode(xml_file_name, args, label_ref)
+            bbox_list, width, height = xml_decode(xml_file_name, args)
+            lborder, rborder, narrow_width = au.fov_process(args.fov, width)
             bar_worker.update()
             if bbox_list:
                 
                 label_perfix = op.splitext(f)[0]          
                 
                 if num_image and (label_perfix in images_perfix_list):                     
-                    draw_poly2bbox(label_perfix + image_extension, image_path, check_dir, bbox_list)
-                    create_bbox(bbox_list, label_dir, height, width, label_perfix, args)
-                    copy_image(extract_dir, image_path, label_perfix + image_extension, args)  
+                    dm.draw_poly2bbox(label_perfix + image_extension, image_path, check_dir, bbox_list, 
+                                      args.palette, narrow_width, lborder)
+                    xw.create_bbox(bbox_list, label_dir, height, narrow_width, label_perfix, args.size)
+                    au.copy_image(extract_dir, image_path, label_perfix + image_extension, args.size, 
+                                  narrow_width, lborder)
     else:
         raise IOError('Orignal image path must be provided!')
     
@@ -503,19 +185,10 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(                                     
     description= '''Convert xml label to image label for image segmentation
-                    Class index:
-                        background: 0
-                        road: 1
-                        car: 2
-                        person: 3
-                        obstacle: 4
-                        parkinglots: 5
-                        bump: 6
-                        ignore: 255
                  ''',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
-    parser.add_argument('-d','--dir', type = str, default = None,
+    parser.add_argument('-d','--dir', type = str, default = None, required = True,
                         help = 'The directory that contain xml label files')
     parser.add_argument('-m','--mask', type = str, default = None,
                         help = 'The mask that will be used onto every label')
@@ -537,6 +210,11 @@ if __name__ == '__main__':
                         help = 'Size ratio of orignal images and labels')
     parser.add_argument('-b', '--bndbox', type = int, default = 0,
                         help = 'Wether to generate bounding box format label')
+    parser.add_argument('-p', '--palette', type = int, default = 0,
+                        help = '0 object palette, 1 component palette')
+    parser.add_argument('-f', '--fov', type = int, default = 128,
+                        help = 'Keep the scope of picture by FOV')
+
     args = parser.parse_args()
     
     if args.bndbox:

@@ -5,7 +5,9 @@ Created on Tue Mar 14 16:25:14 2017
 
 @author: andrew
 
-This model will provide some helpful function or class
+Install opencv by this mean
+$conda install opencv
+version 3.1.0
 """
 
 import numpy as np
@@ -41,11 +43,25 @@ label_palette = {0: (0,0,0),
                  6: (0,255,255),
                  255: (255,255,255)}
 
+component_palette = {'background': (0,0,0),
+                       'pillar': (0,255,0),
+                       'arrow': (255,255,0),
+                       'mirror': (255,0,0),                
+                       'character': (0,0,255),
+                       'hydrant': (255,0,255),
+                       'door': (0,255,255),
+                       'ignore': (255,255,255)}
+
 collect_list = ['car','person','obstacle']
+
+component_list = ['pillar', 'arrow', 'mirror', 'character', 'hydrant', 'door']
 
 bbox = namedtuple('bbox',['name', 'xmin','ymin','xmax','ymax', 'truncated', 'difficult'])
 
 polygon = namedtuple('polygon', ['name', 'pts'])
+
+#Current camera FOV
+standard_fov = 128
 
 class process_bar(object):
     def __init__(self, num_items, bar_length = 50, init_count = 0.0):
@@ -117,4 +133,32 @@ def autoconstrast_augmentation(images_root, labels_root):
         im_e.save(op.join(images_root, new_image_name))
         
         #Copy label
-        shutil.copy(op.join(labels_root, n + label_extension), op.join(labels_root, n + '_e' + label_extension))
+        shutil.copy(op.join(labels_root, n + label_extension), op.join(labels_root, n + '_e' + label_extension))   
+        
+def copy_image(extract_dir, image_path, image_name, ratio, narrow_width = 0, lborder = 0):
+    #Copy the orignal image or reize it than store at specific location
+    if ratio != 1.0:
+        org_img = Image.open(op.join(image_path, image_name))
+        re_height = int(ratio * float(org_img.height))
+        re_width = int(ratio * float(org_img.width))
+        resize_img = org_img.resize((re_width, re_height), Image.ANTIALIAS)
+        resize_img.save(op.join(extract_dir,image_name))
+    elif lborder:
+        org_img =Image.open(op.join(image_path, image_name))
+        crop_img = org_img.crop((lborder, 0, lborder + narrow_width, org_img.height))
+        crop_img.save(op.join(extract_dir, image_name))
+    else:
+        shutil.copy(op.join(image_path, image_name), extract_dir)
+        
+def fov_process(fov, width):
+    #Calculate image width according to FOV
+    if fov < standard_fov:
+        unit_length = int(width / standard_fov)
+        narrow_width = fov * unit_length
+        lborder = (width - narrow_width) // 2
+        rborder = lborder + narrow_width
+        return lborder, rborder, narrow_width
+    elif fov == standard_fov:
+        return 0, width, width
+    else:
+        raise IOError('Set a FOV larger than standrad one')
