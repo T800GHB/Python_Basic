@@ -122,7 +122,7 @@ def label_generate(args):
                 
         for f in labels:
             xml_file_name = op.join(xml_dir, f)    
-            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args.omit, label_ref)
+            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args, label_ref)
             label_perfix = op.splitext(f)[0] 
             bar_worker.update()
             if object_dict:
