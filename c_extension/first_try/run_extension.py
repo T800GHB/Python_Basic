@@ -10,4 +10,6 @@ import math_opt
 
 result = math_opt.add(3,4)
 
+r2 = math_opt.sub(7,3)
+
 print('First C extension result: ', result)
