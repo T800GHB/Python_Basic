@@ -28,9 +28,10 @@ class man(person):
     pass
 
 class car(object):
-    def __init__(self, brandmark, s = 0.0):
+    def __init__(self, brandmark, s = 0.0, w_load = 0.0):
         self.__brandmark = brandmark  
         self.__speed = s
+        self.__w_load = w_load
         
     #Class customization.If object reference an attribute that does not exist
     #__getattr__ will call automatically.
@@ -56,10 +57,17 @@ class car(object):
     def brandmark(self):
         return self.__brandmark
     
-    #Make a method belong to this calss
+    #This method could call by class name
+    #First argument is class name, like self in instance method as first default arguments
+    #Scenario fit for creating instance as factory method
     @classmethod
-    def weight_load(ex_weight):
-        print('I do not know')
+    def weight_load_car(cls, ex_weight):
+        print('Class name: ', cls, ' , extra weight: ', ex_weight)
+        #Something magic information
+        brand = 'Chevrolet'
+        speed = 100
+        weight = 1500
+        return cls(brand, speed, weight + ex_weight)
 """
 This is a enum class, @unique decorator will make sure there is no repeated
 element.
@@ -124,8 +132,10 @@ def run_demo():
     #This will call __getattr__, horsepower does not a attribute belong to car.
     print('The horsepower of car is :', c.horsepower)
     #This will also call __getattr__, but it will raise an error.
-    #print('The type of car is :', c.type)    
-    c.weight_load()    
+    #print('The type of car is :', c.type)
+    big_car = car.weight_load_car(100)
+    #Same as above, because c is object of car
+    c.weight_load(100)
     #Define a object that is enum element
     day = Weekday.Mon
     print('Enum element :',day)
