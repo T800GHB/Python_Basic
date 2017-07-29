@@ -57,7 +57,7 @@ class car(object):
     def brandmark(self):
         return self.__brandmark
     
-    #This method could call by class name
+    #This method could call by class name or its instantiated object
     #First argument is class name, like self in instance method as first default arguments
     #Scenario fit for creating instance as factory method
     @classmethod
@@ -68,6 +68,13 @@ class car(object):
         speed = 100
         weight = 1500
         return cls(brand, speed, weight + ex_weight)
+    #This method colud call by class name or its instantiated object
+    #Its dose not need fixed first argument
+    #Scenario firt for working without any variable or method contained in this class
+    #There is no big difference with normal method in current module, only service for this class
+    @staticmethod
+    def welcome(cumstomer):
+        print('Welcome ', cumstomer, ' use our car')
 """
 This is a enum class, @unique decorator will make sure there is no repeated
 element.
@@ -136,6 +143,8 @@ def run_demo():
     big_car = car.weight_load_car(100)
     #Same as above, because c is object of car
     c.weight_load(100)
+    car.welcome('andrew')
+    c.welcome('andrew')
     #Define a object that is enum element
     day = Weekday.Mon
     print('Enum element :',day)
