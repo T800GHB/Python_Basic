@@ -918,7 +918,7 @@ def connection_label(thre = 128, direction = 8):
     height = src_img.shape[0]
     width = src_img.shape[1]
     '''Achive binary image'''
-    bindata = src_img >= 128
+    bindata = src_img >= thre
     '''
     Establish a container to store a set of indices that indicate start and end
     foreground pixel in its row.
@@ -937,7 +937,7 @@ def connection_label(thre = 128, direction = 8):
             run_row.append(i)
             run_start.append(0)
         for j in range(1, width):
-            '''Find b-f switch location that wbill be treated as start index'''
+            '''Find b-f switch location that will be treated as start index'''
             if bindata[i,j - 1] == False and bindata[i, j]== True:
                 run_row.append(i)
                 run_start.append(j)
@@ -1043,14 +1043,14 @@ def connection_label(thre = 128, direction = 8):
         temp_list.append(i)
         index = 0
         while index < len(temp_list):
-            for k in range(pair_count):
-                if label_pair[k][0] == temp_list[index]:
-                    equal_com = label_pair[k][1]    #Equal pair another component
+            for pair in label_pair:
+                if pair[0] == temp_list[index]:
+                    equal_com = pair[1]    #Equal pair another component
                     if label_flag[equal_com] == 0:
                         temp_list.append(equal_com) #Add new connection
                         label_flag[equal_com] = new_label #Assign new label
-                if label_pair[k][1] == temp_list[index]:
-                    equal_com = label_pair[k][0]
+                if pair[1] == temp_list[index]:
+                    equal_com = pair[0]
                     if label_flag[equal_com] == 0:
                         temp_list.append(equal_com)
                         label_flag[equal_com] = new_label
