@@ -70,3 +70,5 @@ target/
 *.py~
 #cProfile file
 *.prof
+
+.idea
