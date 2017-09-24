@@ -10,9 +10,8 @@ import assist_util as au
 import numpy as np
 
 
-
 def convert_point(pt, width, height):
-    #Sometimes system will generate decimals
+    # Sometimes system will generate decimals
     x = int((pt.find('x').text).split('.')[0])
     y = int((pt.find('y').text).split('.')[0])
     x = min(x, width - 1)
@@ -20,6 +19,7 @@ def convert_point(pt, width, height):
     x = max(x, 0)
     y = max(y, 0)    
     return x, y
+
 
 def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
     '''
@@ -53,13 +53,13 @@ def append_polygon_dict(obj, object_dict, object_class, width, height, omit):
     else:            
         pass
 
-def xml_decode_polygon(filename, omit_flag, label_ref = None):
-    '''
+
+def xml_decode_polygon(filename, args, label_ref = None):
+    """
     Read object polygon information from xml file
-    '''
+    """
     try:
         file_root = ElementTree.parse(filename)
-#        image_name = file_root.find('filename').text    
         image_size = file_root.find('imagesize')
         width = int(image_size.find('ncols').text)
         height = int(image_size.find('nrows').text)        
@@ -71,24 +71,24 @@ def xml_decode_polygon(filename, omit_flag, label_ref = None):
                 object_class = obj.find('name').text
                 if label_ref:
                     if au.gray_palette[object_class][0] in label_ref:
-                        append_polygon_dict(obj, object_dict, object_class, width, height, omit_flag)  
+                        append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)  
                     elif object_class == 'bump':
                         append_polygon_dict(obj, object_dict, 'road', width, height, omit = 0)    
                     else:                        
                         append_polygon_dict(obj, object_dict, 'background', width, height, omit = 0)       
                 else:
-                    append_polygon_dict(obj, object_dict, object_class, width, height, omit_flag)            
+                    append_polygon_dict(obj, object_dict, object_class, width, height, args.omit)            
 
     except Exception as e:
-        print('Xml file : '  ,filename, ' load error happened : ', e)    
-#        image_name = None
+        print('Xml file : ', filename, ' load error happened : ', e)
         height = width = 0
         object_dict = {}       
                     
     return object_dict, width, height
 
+
 def del_cover(bbox_list):
-    #Delete small bounding box warp into another one
+    # Delete small bounding box warp into another one
     new_list = []
     for i, box in enumerate(bbox_list):
         cover_flag = 0
@@ -99,11 +99,30 @@ def del_cover(bbox_list):
         if not cover_flag:
             new_list.append(box)
     return new_list
+
+
+def optimal_edge(bbox_list, nwidth):
+    new_list = []
+    index_border = nwidth - 1
+    # Correct bottom edge by ratio of bounding box width and height
+    for box in bbox_list:
+        valid_falg = 1
+        if box.xmax == index_border or box.xmin == 0:
+            bw = box.xmax - box.xmin
+            bh = box.ymax - box.ymin
+            ratio = bw / bh
+            if ratio < 0.2 or bw < 25 or bh < 25:                
+                valid_falg = 0
+        if valid_falg:
+            new_list.append(box)
             
-def append_bbox_list(obj, bbox_list, name, width, height, fov):
-    '''
+    return new_list
+
+
+def append_bbox_list(obj, bbox_list, name, width, height, lborder, rborder, nwidth, top_offset):
+    """
     Load bounding box information from xml file and append to the list
-    '''
+    """
     if obj.find('type') == None:
         raise TypeError('This is not bounding box object: ', name, ' id: ', obj.find('id').text)
     else:
@@ -119,10 +138,11 @@ def append_bbox_list(obj, bbox_list, name, width, height, fov):
             difficult = 'x'
         
         points = obj.find('polygon').findall('pt')
-        lborder, rborder, narrow_width = au.fov_process(fov, width)
         point_list = [convert_point(pt, width, height) for pt in points]
         xmin, ymin = np.min(point_list, axis = 0)
         xmax, ymax = np.max(point_list, axis = 0)
+
+        # If valid FOV has set
         if lborder:
             if xmax < lborder or rborder < xmin:
                 return
@@ -130,32 +150,40 @@ def append_bbox_list(obj, bbox_list, name, width, height, fov):
                 xmin = 0
                 xmax -= lborder
             elif rborder < xmax and lborder < xmin:
-                xmax = narrow_width
+                xmax = nwidth - 1
                 xmin -= lborder
             elif rborder < xmax and xmin < lborder:
-                xmax = narrow_width
+                xmax = nwidth - 1
                 xmin = 0
             else:
                 xmin -= lborder
                 xmax -= lborder
-                
-            bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax, trunc, difficult))
-        else:     
-            bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax, trunc, difficult))
+        else:
+            pass
 
-def xml_decode_bbox(filename, palette_flag, fov):
-    '''
+        if top_offset:
+            if ymax - top_offset <= 0:
+                return
+            else:
+                ymin = max(0, ymin- top_offset)
+                ymax = max(0, ymax- top_offset)
+
+        bbox_list.append(au.bbox(name, xmin, ymin, xmax, ymax, trunc, difficult))
+
+
+def xml_decode_bbox(filename, args):
+    """
     Read object bounding box information from xml file
-    '''
+    """
     try:
         file_root = ElementTree.parse(filename)
-#        image_name = file_root.find('filename').text    
         image_size = file_root.find('imagesize')
         width = int(image_size.find('ncols').text)
         height = int(image_size.find('nrows').text)
-        list_object = file_root.findall('object')      
+        list_object = file_root.findall('object')  
+        lborder, rborder, nwidth = au.fov_process(args.fov, width)
         bbox_list = []
-        if palette_flag:
+        if args.palette:
             name_list = au.component_list
         else:
             name_list = au.collect_list
@@ -163,22 +191,25 @@ def xml_decode_bbox(filename, palette_flag, fov):
             if obj.find('deleted').text != '1':
                 name = obj.find('name').text
                 if name in name_list:
-                    append_bbox_list(obj, bbox_list, name, width, height, fov)
+                    append_bbox_list(obj, bbox_list, name, width, height, lborder, rborder, nwidth, args.crop)
                 else:
                     raise IOError('Invalid name: ', name)
-        if fov < au.standard_fov:
+        if lborder:
             bbox_list = del_cover(bbox_list)
+            bbox_list = optimal_edge(bbox_list, nwidth)
+        if args.crop:
+            height -= args.crop
             
     except Exception as e:
-        print('Xml file : '  ,filename, ' load error happened : ', e)    
-#        image_name = None
+        print('Xml file : ', filename, ' load error happened : ', e)
         height = width = 0
         bbox_list = []
         
-    return bbox_list, width, height
+    return bbox_list, width, height, lborder, rborder, nwidth
+
 
 def extract_bbox(height, width, item_dict):
-    #convert store format, because paint layer does not make senes for bounding box
+    # convert store format, because paint layer does not make senes for bounding box
     bbox_list = []
     if item_dict:
         item_keys = list(item_dict.keys())

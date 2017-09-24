@@ -122,7 +122,7 @@ def label_generate(args):
                 
         for f in labels:
             xml_file_name = op.join(xml_dir, f)    
-            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args.omit, label_ref)
+            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args, label_ref)
             label_perfix = op.splitext(f)[0] 
             bar_worker.update()
             if object_dict:
@@ -132,8 +132,9 @@ def label_generate(args):
                 if num_image and (label_perfix in images_perfix_list):
                     dm.draw_on_image(label_perfix + image_extension, image_path,
                     check_dir, label, object_dict, args, mask)
-                    au.copy_image(extract_dir, image_path, label_perfix + image_extension, args.size)    
+                    au.copy_image(extract_dir, image_path, label_perfix + image_extension, args)
     print('\n')
+
 
 def bbox_generate(args):
     (xml_dir, label_dir, labels, assign_palette, mask, 
@@ -141,18 +142,18 @@ def bbox_generate(args):
     
     bar_worker = au.process_bar(num_items= len(labels))
     
-    #Define a inner function for different data source
+    # Define a inner function for different data source
     if args.bndbox == 1:
-        #From polygon
+        # From polygon
         def xml_decode(xml_file_name, args):
-            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args.omit)
+            object_dict, width, height = xr.xml_decode_polygon(xml_file_name, args)
             bbox_list = xr.extract_bbox(height, width, object_dict)
-            return bbox_list, height, width
+            return bbox_list, height, width, 0, width, width
     elif args.bndbox == 2:
-        #From bounding box
+        # From bounding box
         def xml_decode(xml_file_name, args):
-            bbox_list, width, height = xr.xml_decode_bbox(xml_file_name, args.palette, args.fov)
-            return bbox_list, width, height
+            bbox_list, width, height, lborder, rborder, nwidth = xr.xml_decode_bbox(xml_file_name, args)
+            return bbox_list, width, height, lborder, rborder, nwidth
     else:
         raise ValueError('Specify a invalid method type: args - ', args.bndbox)
     
@@ -163,8 +164,7 @@ def bbox_generate(args):
             image_extension = op.splitext(images[0])[1]        
         for f in labels:
             xml_file_name = op.join(xml_dir, f)  
-            bbox_list, width, height = xml_decode(xml_file_name, args)
-            lborder, rborder, narrow_width = au.fov_process(args.fov, width)
+            bbox_list, width, height, lborder, rborder, nwidth = xml_decode(xml_file_name, args)
             bar_worker.update()
             if bbox_list:
                 
@@ -172,10 +172,10 @@ def bbox_generate(args):
                 
                 if num_image and (label_perfix in images_perfix_list):                     
                     dm.draw_poly2bbox(label_perfix + image_extension, image_path, check_dir, bbox_list, 
-                                      args.palette, narrow_width, lborder)
-                    xw.create_bbox(bbox_list, label_dir, height, narrow_width, label_perfix, args.size)
-                    au.copy_image(extract_dir, image_path, label_perfix + image_extension, args.size, 
-                                  narrow_width, lborder)
+                                      args, nwidth, lborder)
+                    xw.create_bbox(bbox_list, label_dir, height, nwidth, label_perfix, args.size)
+                    au.copy_image(extract_dir, image_path, label_perfix + image_extension, args,
+                                  nwidth, lborder)
     else:
         raise IOError('Orignal image path must be provided!')
     
@@ -214,6 +214,8 @@ if __name__ == '__main__':
                         help = '0 object palette, 1 component palette')
     parser.add_argument('-f', '--fov', type = int, default = 128,
                         help = 'Keep the scope of picture by FOV')
+    parser.add_argument('-c', '--crop', type = int, default= 0,
+                        help = 'crop offset from top')
 
     args = parser.parse_args()
     

@@ -10,14 +10,16 @@ import PIL.ImageDraw as pd
 import os.path as op
 import assist_util as au
 
-def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list, palette_flag, narrow_width, lborder):
+def draw_poly2bbox(filename, image_dir, dst_dir, bbox_list, args, narrow_width, lborder):
     
     img = pi.open(op.join(image_dir, filename)).convert('RGB')
     if lborder:
-        img = img.crop((lborder, 0, lborder + narrow_width, img.height))
+        img = img.crop((lborder, args.crop, lborder + narrow_width, img.height))
+    elif args.crop:
+        img = img.crop((0, args.crop, img.width, img.height))
     draw_object = pd.Draw(img)
     
-    if palette_flag:
+    if args.palette:
         palette = au.component_palette
     else:
         palette = au.rgb_palette
@@ -34,6 +36,9 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, args, ma
     if args.transparent:
         attach_image = label_image.convert('RGB')
         blend_image = pi.blend(img, attach_image, args.alpha)
+        if args.crop:
+            top = int(float(args.crop) / args.size)
+            blend_image = blend_image.crop((0, top, blend_image.width, blend_image.height))
         blend_image.save(op.join(dst_dir, filename))  
         return blend_image
     else:
@@ -55,9 +60,15 @@ def draw_on_image(filename, image_dir, dst_dir, label_image, item_dict, args, ma
                     pass
         if mask_pts:
             draw_img.polygon(mask_pts, fill = au.rgb_palette['ignore'])
+
+        if args.crop:
+            top = int(float(args.crop) / args.size)
+            img = img.crop((0, top, img.width, img.height))
+
         img.save(op.join(dst_dir, filename))
         return img 
-    
+
+
 def create_label(image_name, folder, item_dict, width, height, 
                  assign_palette,  args, mask_pts = None):
     label = pi.new(mode = 'L', size = (width, height), color = (0,))
@@ -88,9 +99,14 @@ def create_label(image_name, folder, item_dict, width, height,
     if args.size != 1.0:
         re_height = int(args.size * float(height))
         re_width = int(args.size * float(width))
-        final_label = label.resize((re_width, re_height), pi.NEAREST)
+        resize_label = label.resize((re_width, re_height), pi.NEAREST)
     else:
-        final_label = label
-    final_label.save(op.join(folder, label_name))
+        resize_label = label
+    if args.crop:
+        crop_label = resize_label.crop((0, args.crop, resize_label.width, resize_label.height))
+    else:
+        crop_label = resize_label
+
+    crop_label.save(op.join(folder, label_name))
     
     return label
