@@ -5,6 +5,7 @@ Created on Mon Mar 21 23:15:07 2016
 @author: T800GHB
 
 This file will demostrate how to count time using time model.
+Unit of clock() is second.
 """
 
 import time
