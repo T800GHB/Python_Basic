@@ -5,3 +5,5 @@ Reserve unique elements onto orignal array.
 2.sort
 Many kinds of sort algorithm
 3.sort with modification
+
+4.kalman filter
