@@ -9,12 +9,16 @@ import xml.dom.minidom as xd
 import os.path as op
 
 def add_node(dom, scope, node = 'None', value = '0'):
-    #Create a new name scope and assign its value for xml element tree
+    #Create a new node at specific scope and assign its value for xml element tree
     node_path = dom.createElement(node)
     node_value = dom.createTextNode(str(value))
     scope.appendChild(node_path)
     node_path.appendChild(node_value)
     
+def add_comment(dom, comment_scope, comment):
+    #Create a new comment node
+    node = dom.createComment(comment)
+    comment_scope.appendChild(node)
 
 def create_scope(dom, root_scope, scope = 'None'):
     #Only create a new name scope
