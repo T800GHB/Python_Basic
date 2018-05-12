@@ -12,6 +12,9 @@ from PIL import Image
 import numpy as np
 import pylab as pl
 import matplotlib.cm as cm
+from skimage import io
+from skimage import color
+from skimage import img_as_ubyte
 
 def image_histo():
     """
@@ -1096,3 +1099,53 @@ def connection_label(thre = 128, direction = 8):
     for i in range(new_label):
         pl.gca().add_patch(pl.Rectangle((object_set[i].left, object_set[i].up),\
         object_set[i].width, object_set[i].height, fill = False, color = (0,1,0)))
+
+        
+def degree2rad(x):
+    return x / 180 * np.pi
+
+
+def bilinear(img, x, y, x_offset, y_offset):
+    xy = x_offset * y_offset
+    output = (img[y, x] * (1 - x_offset - y_offset + xy)
+                + img[y, x + 1] * (x_offset - xy)
+                + img[y + 1, x] * (y_offset - xy)
+                + img[y + 1, x + 1] * xy)
+    return np.uint8(output)
+
+
+def rotate_image(filename, rotate_degree=0, rotate_center_x=0, rotate_center_y=0):
+    color_img = io.imread(filename)
+    img_shape = color_img.shape
+    if len(img_shape) > 2:
+        gray_img = color.rgb2gray(color_img)
+        gray_img = img_as_ubyte(gray_img)
+    else:
+        gray_img = color_img
+
+    img_height, img_width = img_shape[0:2]
+    rotate_img = np.zeros((img_height, img_width), dtype=np.uint8)
+    # To protect array access, when use bilinear interpolate
+    height_border = img_height - 2
+    width_border = img_width - 2
+
+    cos_value = np.cos(degree2rad(rotate_degree))
+    sin_value = np.sin(degree2rad(rotate_degree))
+
+    # New image original point in old image, rotate(-center_x, -center_y) and set to rotate center
+    dx = -rotate_center_x * cos_value - rotate_center_y * sin_value + rotate_center_x
+    dy = -rotate_center_y * cos_value + rotate_center_x * sin_value + rotate_center_y
+
+    for i in range(img_height):
+        for k in range(img_width):
+            original_x = k * cos_value + i * sin_value + dx
+            original_y = i * cos_value - k * sin_value + dy
+            if original_x < 0 or original_y < 0 or width_border < original_x or height_border < original_y:
+                pass
+            else:
+                integer_x = np.floor(original_x)
+                integer_y = np.floor(original_y)
+                rotate_img[i, k] = bilinear(gray_img, np.int(integer_x), np.int(integer_y),
+                                            original_x - integer_x, original_y - integer_y)
+
+    io.imshow(rotate_img)
